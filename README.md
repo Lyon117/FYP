@@ -38,7 +38,7 @@ This is a setup guidelines of our FYP.
   git clone https://github.com/lthiery/SPI-Py.git
   cd /home/pi/SPI-Py
   sudo python3 setup.py install</pre>
-  * Clone this repository
+  * Clone these repository
   <pre>
   git clone https://github.com/murasakiakari/MFRC522-python3.git
   git clone https://github.com/murasakiakari/FYP.git</pre>
