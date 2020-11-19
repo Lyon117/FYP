@@ -39,5 +39,8 @@ This is a setup guidelines of our FYP.
   cd /home/pi/SPI-Py
   sudo python3 setup.py install</pre>
   * Clone this repository
-  <pre>git clone https://github.com/murasakiakari/FYP-Gp3_8</pre>
+  <pre>
+  git clone https://github.com/murasakiakari/MFRC522-python3.git
+  git clone https://github.com/murasakiakari/FYP.git</pre>
+  * Move MFRClib.py in /home/pi/MFRC522-python3 to /home/pi/FYP
   * Please enjoy
