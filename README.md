@@ -1,4 +1,4 @@
-# FYP-Gp3_8
+# FYP
 This is a setup guidelines of our FYP.
 ## Requirement
   * A Raspberry Pi
