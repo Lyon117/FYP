@@ -4,6 +4,25 @@ import sys
 
 
 def main():
+    def card_initialization():
+        @MIFAREReader.standard_frame(initialize=1, access_key=access_key, student_data=student_data)
+        def card_initialization(access_key, student_data, uid):
+            MIFAREReader.MFRC522_Auth(uid, 3, MIFAREReader.DEFAULT_KEY)
+            MIFAREReader.MFRC522_Write(1, student_data[:16])
+            MIFAREReader.MFRC522_Write(2, student_data[16:])
+            for index in range(7, 64, 4):
+                try:
+                    MIFAREReader.MFRC522_Auth(uid, index, MIFAREReader.DEFAULT_KEY)
+                    if index == 7:
+                        MIFAREReader.MFRC522_Write(4, [0] * 16)
+                    elif index == 11:
+                        MIFAREReader.MFRC522_Write(8, [1] + [0] * 15)
+                        MIFAREReader.MFRC522_Write(9, [0] * 16)
+                    block_data = MIFAREReader.MFRC522_Read(index)
+                    MIFAREReader.MFRC522_Write(index, access_key + block_data[6:])
+                except MIFAREReader.AuthenticationError:
+                    continue
+
     MIFAREReader = MFRC522libExtension.MFRC522libExtension()
     student_id = input('Please input your student ID:\n')
     while 1:
@@ -29,28 +48,8 @@ def main():
         print('The student name is too long')
         input('Press ENTER to exit')
         sys.exit(0)
-
-    def card_initialization():
-        @MIFAREReader.standard_frame(initialize=1, access_key=student_id_data, student_data=student_id_data + student_name_data)
-        def card_initialization(access_key, student_data, uid):
-            status = MIFAREReader.MFRC522_Auth(MIFAREReader.PICC_AUTHENT1A, 3, MIFAREReader.DEFAULT_KEY, uid)
-            if status == MIFAREReader.MI_OK:
-                MIFAREReader.MFRC522_Write(1, student_data[:16])
-                MIFAREReader.MFRC522_Write(2, student_data[16:])
-                for index in range(7, 64, 4):
-                    try:
-                        status = MIFAREReader.MFRC522_Auth(MIFAREReader.PICC_AUTHENT1A, index, MIFAREReader.DEFAULT_KEY, uid)
-                        if status == MIFAREReader.MI_OK:
-                            if index == 7:
-                                MIFAREReader.MFRC522_Write(4, [1] + [0] * 15)
-                            elif index == 11:
-                                MIFAREReader.MFRC522_Write(8, [1] + [0] * 15)
-                                MIFAREReader.MFRC522_Write(9, [0] * 16)
-                            block_data = MIFAREReader.MFRC522_Read(index)
-                            MIFAREReader.MFRC522_Write(index, access_key + block_data[6:])
-                    except MIFAREReader.AuthenticationError:
-                        continue
-
+    access_key = student_id_data
+    student_data = student_id_data + student_name_data
     card_initialization()
     GPIO.cleanup()
 

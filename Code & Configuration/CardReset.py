@@ -3,8 +3,6 @@ import RPi.GPIO as GPIO
 
 
 def main():
-    MIFAREReader = MFRC522libExtension.MFRC522libExtension()
-
     def card_reset():
         @MIFAREReader.standard_frame()
         def card_reset(access_key, uid):
@@ -13,9 +11,7 @@ def main():
                 try:
                     if block % 4 == 0:
                         key = MIFAREReader.DEFAULT_KEY if block == 0 else access_key
-                        status = MIFAREReader.MFRC522_Auth(MIFAREReader.PICC_AUTHENT1A, block, key, uid)
-                        if status == MIFAREReader.MI_OK:
-                            pass
+                        MIFAREReader.MFRC522_Auth(uid, block, key)
                     if block == 0:
                         continue
                     elif block % 4 != 3:
@@ -26,6 +22,7 @@ def main():
                 except MIFAREReader.AuthenticationError:
                     continue
 
+    MIFAREReader = MFRC522libExtension.MFRC522libExtension()
     card_reset()
     GPIO.cleanup()
 
