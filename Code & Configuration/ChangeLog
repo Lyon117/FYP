@@ -12,6 +12,15 @@ MFRC522lib
 - Official release
 
 System
+## [0.1.0] - 2021-02-05
+### Added
+- Locker borrow function
+- Display of current time
+### Changed
+- Entry method of admin interface
+### Fixed
+- Some bugs
+
 ## [0.1.0] - 2021-01-25
 ### Added
 - User interface
@@ -20,6 +29,10 @@ System
 - First release
 
 SystemConfiguration
+## [1.0.1] - 2021-02-05
+### Changed
+- The data structure
+
 ## [1.0.0] - 2021-01-25
 ### Added
 - Official release
