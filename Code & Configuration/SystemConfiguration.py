@@ -127,7 +127,7 @@ def system_status_initialization():
     locker_column = system_configuration_data['locker_column']
     locker_row = system_configuration_data['locker_row']
     locker_number = locker_column * locker_row
-    system_status_data = {f'{index}': {'availability': '0', 'student_name': '', 'student_id': '', 'start_time': '', 'usage_count': 0} for index in range(locker_number)}
+    system_status_data = {f'{index}': {'availability': 1, 'student_name': None, 'student_id': None, 'start_time': None, 'usage_count': 0} for index in range(locker_number)}
     with open(SYSTEM_STATUS_FILE_PATH, 'wb') as system_status_file:
         dump(system_status_data, system_status_file)
 
