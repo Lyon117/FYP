@@ -6,7 +6,7 @@ from pickle import dump, load
 from pprint import pformat
 from PyQt5 import QtCore, QtGui, QtWidgets
 import RPi.GPIO as GPIO
-# import Saveuser #
+import Saveuser #
 from sys import argv, exit
 from time import localtime, sleep, strftime, time
 from typing import Union
@@ -60,6 +60,9 @@ class MFRC522libExtension(MFRC522lib.MFRC522lib):
                         break
                     except (self.AuthenticationError, self.CommunicationError, self.IntegrityError):
                         tap_card_gui.HintLabel.setText('Please tap your card again')
+                        self.MFRC522_StopCrypto1()
+                    except (self.UnmatchError):
+                        tap_card_gui.HintLabel.setText('The card holder does not is a borrower of this locker.')
                         self.MFRC522_StopCrypto1()
                 sleep(0.1)
             return result
@@ -603,7 +606,7 @@ class CardInitializationProgram(CardInitializationController):
     def DatabaseUpdate(self):
         tap_card_gui.close()
         uid = self.Thread.Result
-        # Saveuser.main(uid, self.StudentName, self.StudentId)
+        Saveuser.main(uid, self.StudentName, self.StudentId)
 
 
 class CardResetGui(QtWidgets.QWidget):
@@ -850,21 +853,22 @@ class LockerBorrowProgram(LockerBorrowController):
     
     def StatusUpate(self):
         tap_card_gui.close()
-        student_info_data = self.Thread.Result[0] + self.Thread.Result[1]
-        student_id = Converter.StudentId(student_info_data[:6])
-        student_name = Converter.StudentName(student_info_data[6:])
-        system_gui.SystemStatus[self.LockerIndex]['availability'] = 0
-        system_gui.SystemStatus[self.LockerIndex]['student_name'] = student_name
-        system_gui.SystemStatus[self.LockerIndex]['student_id'] = student_id
-        system_gui.SystemStatus[self.LockerIndex]['start_time'] = self.StartTime
-        system_gui.SystemStatus[self.LockerIndex]['usage_count'] += 1
-        with open(SYSTEM_STATUS_FILE_PATH, 'wb') as system_status_file:
-            dump(system_gui.SystemStatus, system_status_file)
-        time_string = strftime('%Y-%m-%d %H:%M:%S', localtime(self.StartTime))
-        with open(SYSTEM_LOG_FILE_PATH, 'a') as system_log_file:
-            system_log_file.write(f'{time_string},Borrow - Locker {self.LockerIndex} was borrowed by {student_id} {student_name}\n')
-        print(system_gui.SystemStatus)
-        system_gui.LockerStatusRefresh()
+        if mifare_reader.InterruptSignal == False:
+            student_info_data = self.Thread.Result[0] + self.Thread.Result[1]
+            student_id = Converter.StudentId(student_info_data[:6])
+            student_name = Converter.StudentName(student_info_data[6:])
+            system_gui.SystemStatus[self.LockerIndex]['availability'] = 0
+            system_gui.SystemStatus[self.LockerIndex]['student_name'] = student_name
+            system_gui.SystemStatus[self.LockerIndex]['student_id'] = student_id
+            system_gui.SystemStatus[self.LockerIndex]['start_time'] = self.StartTime
+            system_gui.SystemStatus[self.LockerIndex]['usage_count'] += 1
+            with open(SYSTEM_STATUS_FILE_PATH, 'wb') as system_status_file:
+                dump(system_gui.SystemStatus, system_status_file)
+            time_string = strftime('%Y-%m-%d %H:%M:%S', localtime(self.StartTime))
+            with open(SYSTEM_LOG_FILE_PATH, 'a') as system_log_file:
+                system_log_file.write(f'{time_string},Borrow - Locker {self.LockerIndex} was borrowed by {student_id} {student_name}\n')
+            print(system_gui.SystemStatus)
+            system_gui.LockerStatusRefresh()
 
 
 class LockerReturnGui(QtWidgets.QWidget):
@@ -948,19 +952,20 @@ class LockerReturnProgram(LockerReturnController):
 
     def StatusUpate(self):
         tap_card_gui.close()
-        student_name = system_gui.SystemStatus[self.LockerIndex]['student_name']
-        student_id = system_gui.SystemStatus[self.LockerIndex]['student_id']
-        system_gui.SystemStatus[self.LockerIndex]['availability'] = 1
-        system_gui.SystemStatus[self.LockerIndex]['student_name'] = None
-        system_gui.SystemStatus[self.LockerIndex]['student_id'] = None
-        system_gui.SystemStatus[self.LockerIndex]['start_time'] = None
-        with open(SYSTEM_STATUS_FILE_PATH, 'wb') as system_status_file:
-            dump(system_gui.SystemStatus, system_status_file)
-        time_string = strftime('%Y-%m-%d %H:%M:%S', localtime(self.EndTime))
-        with open(SYSTEM_LOG_FILE_PATH, 'a') as system_log_file:
-            system_log_file.write(f'{time_string},Return - Locker {self.LockerIndex} was return by {student_id} {student_name}\n')
-        print(system_gui.SystemStatus)
-        system_gui.LockerStatusRefresh()
+        if mifare_reader.InterruptSignal == False:
+            student_name = system_gui.SystemStatus[self.LockerIndex]['student_name']
+            student_id = system_gui.SystemStatus[self.LockerIndex]['student_id']
+            system_gui.SystemStatus[self.LockerIndex]['availability'] = 1
+            system_gui.SystemStatus[self.LockerIndex]['student_name'] = None
+            system_gui.SystemStatus[self.LockerIndex]['student_id'] = None
+            system_gui.SystemStatus[self.LockerIndex]['start_time'] = None
+            with open(SYSTEM_STATUS_FILE_PATH, 'wb') as system_status_file:
+                dump(system_gui.SystemStatus, system_status_file)
+            time_string = strftime('%Y-%m-%d %H:%M:%S', localtime(self.EndTime))
+            with open(SYSTEM_LOG_FILE_PATH, 'a') as system_log_file:
+                system_log_file.write(f'{time_string},Return - Locker {self.LockerIndex} was return by {student_id} {student_name}\n')
+            print(system_gui.SystemStatus)
+            system_gui.LockerStatusRefresh()
 
 
 def get_screen_infomation():
