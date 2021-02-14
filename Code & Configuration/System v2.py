@@ -6,6 +6,7 @@ from pickle import dump, load
 from pprint import pformat
 from PyQt5 import QtCore, QtGui, QtWidgets
 import RPi.GPIO as GPIO
+# import Saveuser #
 from sys import argv, exit
 from time import localtime, sleep, strftime, time
 from typing import Union
@@ -20,10 +21,11 @@ SYSTEM_LOG_FILE_PATH = join('.', 'Log.data')
 class MFRC522libExtension(MFRC522lib.MFRC522lib):
     '''Contain all RFID related program and value'''
     DEFAULT_KEY = [0xFF] * 6
+    
+    class UnmatchError(BaseException): pass
 
     def __init__(self):
         super().__init__()
-        self.InterruptSignal = False
 
     def ChecksumAuth(self, uid):
         data = self.GetKey(uid)
@@ -37,6 +39,7 @@ class MFRC522libExtension(MFRC522lib.MFRC522lib):
     def StandardFrame(self, function):   
         @wraps(function)
         def StandardFrame(*args, **kwargs):
+            self.InterruptSignal = False
             result = None
             buzzer = Buzzerlib.Buzzerlib()
             while not self.InterruptSignal:
@@ -62,8 +65,8 @@ class MFRC522libExtension(MFRC522lib.MFRC522lib):
             return result
         return StandardFrame
     
-    def Interrupt(self, signal: bool):
-        self.InterruptSignal = signal
+    def Interrupt(self):
+        self.InterruptSignal = True
 
 
 class GetCurrentTime(QtCore.QThread):
@@ -292,8 +295,10 @@ class SystemController(SystemGui):
         self.LockerButtonConnection()
         self.UserFunctionConnection()
         self.AdminFunctionConnection()
+        self.LockerStatusRefresh()
     
     def UserFunctionConnection(self):
+        self.BorrowButton.clicked.connect(lambda: locker_borrow_gui.LockerSelection())
         self.CardInfoButton.clicked.connect(lambda: card_info.Execute())
         self.CurrentTime = GetCurrentTime()
         self.CurrentTime.start()
@@ -374,6 +379,14 @@ class SystemProgram(SystemController):
     
     def ExitSystem(self):
         self.close()
+    
+    def LockerStatusRefresh(self):
+        for locker in self.SystemStatus.keys():
+            if self.SystemStatus[locker]['availability'] == 1:
+                exec(f'self.LockerButton{locker}.setStyleSheet("background-color: green; border: none; font-size: 36px; font-family: Calibri")')
+            else:
+                exec(f'self.LockerButton{locker}.setStyleSheet("background-color: red; border: none; font-size: 36px; font-family: Calibri")')
+        self.setFont(self.CommonFont)
 
 
 class TapCardGui(QtWidgets.QWidget):
@@ -410,11 +423,10 @@ class TapCardController(TapCardGui):
     '''This is the Controller session of the Tap Card'''
     def __init__(self):
         super().__init__()
-        self.CancelButton.clicked.connect(lambda: mifare_reader.Interrupt(True))
+        self.CancelButton.clicked.connect(lambda: mifare_reader.Interrupt())
     
     def closeEvent(self, event):
         self.HintLabel.setText('')
-        mifare_reader.Interrupt(False)
         event.accept()
 
 
@@ -555,10 +567,10 @@ class CardInitializationProgram(CardInitializationController):
         super().__init__()
     
     def CardInitializationPreparation(self):
-        student_id = self.StudentIdLineEdit.text()
-        student_id_byte_list = Converter.AddChecksum(Converter.StudentId(int(student_id)))
-        student_name = self.StudentNameLineEdit.text()
-        student_name_byte_list = Converter.StudentName(student_name)
+        self.student_id = self.StudentIdLineEdit.text()
+        student_id_byte_list = Converter.AddChecksum(Converter.StudentId(int(self.student_id)))
+        self.student_name = self.StudentNameLineEdit.text()
+        student_name_byte_list = Converter.StudentName(self.student_name)
         self.access_key = student_id_byte_list
         self.student_infomation_byte = student_id_byte_list + student_name_byte_list
         self.Execute()
@@ -567,7 +579,7 @@ class CardInitializationProgram(CardInitializationController):
         self.close()
         self.Thread = Threading(mifare_reader.StandardFrame(self.MainProgram))
         self.Thread.started.connect(lambda: tap_card_gui.show())
-        self.Thread.finished.connect(lambda: tap_card_gui.close())
+        self.Thread.finished.connect(self.DatabaseUpdate)
         self.Thread.start()
 
     def MainProgram(self, uid, access_key):
@@ -586,7 +598,12 @@ class CardInitializationProgram(CardInitializationController):
                 mifare_reader.MFRC522_Write(index, self.access_key + block_data[6:])
             except mifare_reader.AuthenticationError:
                 continue
-        return
+        return uid
+    
+    def DatabaseUpdate(self):
+        tap_card_gui.close()
+        uid = self.Thread.Result
+        # Saveuser.main(uid, self.StudentName, self.StudentId)
 
 
 class CardResetGui(QtWidgets.QWidget):
@@ -733,9 +750,10 @@ class CardInfoProgram(QtCore.QObject):
         if history_data_list == []:
             display_info = '\n'.join([display_info, 'No history data found'])
         else:
-            history_data_list = [f"{strftime('%Y-%m-%d %H:%M:%S', localtime(data[2]))} {data[0]} {data[1]} {strftime('%Y-%m-%d %H:%M:%S', localtime(data[3])) if data[3] != 0 else 'Not return yet'}" for data in history_data_list]
-            history_data_list = '\n'.join(history_data_list)
-            display_info = '\n'.join([display_info, history_data_list])
+            history_data_display_list = [f"{'Locker Location':<30} {'Index':<5} {'Borrow Time':<19} {'Return Time':<19}"]
+            history_data_display_list += [f"{data[0]:<30} {data[1]:<5d} {strftime('%Y-%m-%d %H:%M:%S', localtime(data[2]))} {strftime('%Y-%m-%d %H:%M:%S', localtime(data[3])) if data[3] != 0 else 'Not return yet'}" for data in history_data_list]
+            history_data_display_list = '\n'.join(history_data_display_list)
+            display_info = '\n'.join([display_info, history_data_display_list])
         return display_info
 
 
@@ -787,6 +805,11 @@ class LockerBorrowProgram(LockerBorrowController):
     def __init__(self):
         super().__init__()
     
+    def LockerSelection(self):
+        locker_list = list(system_gui.SystemStatus.items())
+        locker_list.sort(key=lambda x:x[1]['usage_count'])
+        self.GetLockerIndex(locker_list[0][0])
+
     def BorrowLockerPreparation(self):
         system_name_byte = Converter.SystemName(system_gui.SystemSetting['system_name'])
         locker_index_byte = Converter.LockerIndex(int(self.LockerIndex))
@@ -837,26 +860,107 @@ class LockerBorrowProgram(LockerBorrowController):
         system_gui.SystemStatus[self.LockerIndex]['usage_count'] += 1
         with open(SYSTEM_STATUS_FILE_PATH, 'wb') as system_status_file:
             dump(system_gui.SystemStatus, system_status_file)
+        time_string = strftime('%Y-%m-%d %H:%M:%S', localtime(self.StartTime))
+        with open(SYSTEM_LOG_FILE_PATH, 'a') as system_log_file:
+            system_log_file.write(f'{time_string},Borrow - Locker {self.LockerIndex} was borrowed by {student_id} {student_name}\n')
         print(system_gui.SystemStatus)
+        system_gui.LockerStatusRefresh()
 
 
 class LockerReturnGui(QtWidgets.QWidget):
     '''This is the View session of Locker Return'''
     def __init__(self):
         super().__init__()
+        screen_width, screen_height, center_point = get_screen_infomation()
+        self.setFixedSize(screen_width // 4, screen_height // 4)
+        self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
+        self.CommonFont = QtGui.QFont()
+        self.CommonFont.setFamily('Calibri')
+        self.CommonFont.setPointSize(12)
+        self.setFont(self.CommonFont)
+        frame_geometry = self.frameGeometry()
+        frame_geometry.moveCenter(center_point)
+        self.move(frame_geometry.topLeft())
+        self.setWindowModality(QtCore.Qt.ApplicationModal)
+        # Interface layout setup
+        self.MainLayout = QtWidgets.QGridLayout()
+        self.ReturnMessageLabel_1 = QtWidgets.QLabel()
+        self.ReturnMessageLabel_1.setAlignment(QtCore.Qt.AlignCenter)
+        self.ReturnMessageLabel_2 = QtWidgets.QLabel('Are you comfirm?')
+        self.ReturnMessageLabel_2.setAlignment(QtCore.Qt.AlignCenter)
+        self.MainLayout.addWidget(self.ReturnMessageLabel_1, 0, 0, 1, 3)
+        self.MainLayout.addWidget(self.ReturnMessageLabel_2, 1, 0, 1, 3)
+        self.CancelButton = QtWidgets.QPushButton('Cancel')
+        self.MainLayout.addWidget(self.CancelButton, 2, 0)
+        self.ConfirmButton = QtWidgets.QPushButton('Comfirm')
+        self.MainLayout.addWidget(self.ConfirmButton, 2, 2)
+        self.setLayout(self.MainLayout)
 
 
 class LockerReturnController(LockerReturnGui):
     '''This is the Controller session of Locker Return'''
     def __init__(self):
         super().__init__()
+        self.CancelButton.clicked.connect(self.close)
+        self.ConfirmButton.clicked.connect(self.ReturnLockerPreparation)
+    
+    def GetLockerIndex(self, index):
+        self.LockerIndex = index
+        self.ReturnMessageLabel_1.setText(f'You have selected locker {self.LockerIndex}')
+        self.show()
 
 
 class LockerReturnProgram(LockerReturnController):
     '''This is the Model session of Locker Return'''
     def __init__(self):
         super().__init__()
-        raise NotImplementedError
+
+    def ReturnLockerPreparation(self):
+        self.StudentIdForSelectedLocker = system_gui.SystemStatus[self.LockerIndex]['student_id']
+        self.StartTimeData = Converter.Time(system_gui.SystemStatus[self.LockerIndex]['start_time'])
+        self.EndTime = int(time())
+        self.EndTimeData = Converter.Time(self.EndTime)
+        self.Execute()
+
+    def Execute(self):
+        self.close()
+        self.Thread = Threading(mifare_reader.StandardFrame(self.MainProgram))
+        self.Thread.started.connect(tap_card_gui.show)
+        self.Thread.finished.connect(self.StatusUpate)
+        self.Thread.start()
+
+    def MainProgram(self, uid, access_key):
+        if Converter.StudentId(access_key) != self.StudentIdForSelectedLocker:
+            raise mifare_reader.UnmatchError
+        mifare_reader.MFRC522_Auth(uid, 9, access_key)
+        block9_data = mifare_reader.MFRC522_Read(9)
+        for x in range(11):
+            if x == 10:
+                raise mifare_reader.UnmatchError
+            if block9_data[x] == 1:
+                mifare_reader.MFRC522_Auth(uid, 4 * x + 14, access_key)
+                if mifare_reader.MFRC522_Read(4 * x + 14)[:8] == self.StartTimeData:
+                    break
+        mifare_reader.MFRC522_Write(4 * x + 14, self.StartTimeData + self.EndTimeData)
+        block9_data[x] = 0
+        mifare_reader.MFRC522_Auth(uid, 9, access_key)
+        mifare_reader.MFRC522_Write(9, block9_data)
+
+    def StatusUpate(self):
+        tap_card_gui.close()
+        student_name = system_gui.SystemStatus[self.LockerIndex]['student_name']
+        student_id = system_gui.SystemStatus[self.LockerIndex]['student_id']
+        system_gui.SystemStatus[self.LockerIndex]['availability'] = 1
+        system_gui.SystemStatus[self.LockerIndex]['student_name'] = None
+        system_gui.SystemStatus[self.LockerIndex]['student_id'] = None
+        system_gui.SystemStatus[self.LockerIndex]['start_time'] = None
+        with open(SYSTEM_STATUS_FILE_PATH, 'wb') as system_status_file:
+            dump(system_gui.SystemStatus, system_status_file)
+        time_string = strftime('%Y-%m-%d %H:%M:%S', localtime(self.EndTime))
+        with open(SYSTEM_LOG_FILE_PATH, 'a') as system_log_file:
+            system_log_file.write(f'{time_string},Return - Locker {self.LockerIndex} was return by {student_id} {student_name}\n')
+        print(system_gui.SystemStatus)
+        system_gui.LockerStatusRefresh()
 
 
 def get_screen_infomation():
@@ -883,6 +987,7 @@ if __name__ == '__main__':
         card_dump = CardDumpProgram()
         card_info = CardInfoProgram()
         locker_borrow_gui = LockerBorrowProgram()
+        locker_return_gui = LockerReturnProgram()
         system_gui.show()
         exit(app.exec_())
     else:
@@ -891,4 +996,5 @@ if __name__ == '__main__':
         for i in range(9, 0, -1):
             print(f'\rThe program will exit after {i}s', end='')
             sleep(1)
+        print()
         exit(0)
