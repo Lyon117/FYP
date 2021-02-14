@@ -12,7 +12,12 @@ MFRC522lib
 - Official release
 
 System
-## [0.1.0] - 2021-02-05
+## [0.1.2] - 2021-02-14
+### Added
+- Locker return function
+- Display of locker status
+
+## [0.1.1] - 2021-02-05
 ### Added
 - Locker borrow function
 - Display of current time
