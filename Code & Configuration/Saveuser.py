@@ -14,11 +14,11 @@ def main(uid, student_name, student_id):
     if cursor.rowcount >= 1:
         sleep(1)
         sql_insert = 'UPDATE reg_user SET name =%s WHERE rfid_uid=%s'
-        cursor.execute(sql_insert, (student_name, id))
+        cursor.execute(sql_insert, (student_name, uid))
         sql_insert = 'UPDATE reg_user SET sid =%s WHERE rfid_uid=%s'
-        cursor.execute(sql_insert, (str(student_id), id))
+        cursor.execute(sql_insert, (str(student_id), uid))
         sql_insert = 'UPDATE reg_user SET pw =%s WHERE rfid_uid=%s'
-        cursor.execute(sql_insert, ('12345678', id))
+        cursor.execute(sql_insert, ('12345678', uid))
     else:
         sql_insert = 'INSERT INTO reg_user (name, rfid_uid, sid, pw) VALUES (%s,%s,%s,%s)'
         cursor.execute(sql_insert, (student_name, uid, student_id, '12345678'))
