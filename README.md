@@ -50,3 +50,27 @@ This is a setup guidelines of our FYP.
   <pre>
   sudo apt-get install python3-pyqt5</pre>
 
+### Install Database System
+  * Install Database system with the following command
+  <pre>
+  sudo apt-get install mariadb-server-10.0 -y
+  sudo mysql_secure_installation
+  sudo mysql -u root -p</pre>
+  * Inside Mariadb
+  <pre>
+  CREATE DATABASE historyrecordsystem;
+  CREATE USER 'recordadmin'@'localhost' IDENTIFIED BY 'fyp123';
+  GRANT ALL PRIVILEGES ON historyrecordsystem.* TO 'recordadmin'@'localhost';
+  use HISTORY_RECORD_SYSTEM;
+  create table USER(
+  ID INT UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE,
+  STUDENT_ID VARCHAR(8) NOT NULL,
+  STUDENT_NAME VARCHAR(255) NOT NULL,
+  UID VARCHAR(15) NOT NULL,
+  INITIALIZATION_TIME TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (STUDENT_ID)
+  );
+  exit</pre>
+  * In console
+  <pre>
+  sudo pip3 install mysql-connector-python</pre>
