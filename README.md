@@ -44,3 +44,9 @@ This is a setup guidelines of our FYP.
   git clone https://github.com/murasakiakari/FYP.git</pre>
   * Move MFRClib.py in /home/pi/MFRC522-python3 to /home/pi/FYP
   * Please enjoy
+
+### Install PyQt
+  * Install PyQt with the following command
+  <pre>
+  sudo apt-get install python3-pyqt5</pre>
+
