@@ -74,3 +74,40 @@ This is a setup guidelines of our FYP.
   * In console
   <pre>
   sudo pip3 install mysql-connector-python</pre>
+  
+### Install NGINX
+  * Install NGINX with the following command
+  <pre>
+  sudo apt-get remove apache2
+  sudo apt-get install nginx
+  sudo systemctl start nginx</pre>
+  * Now you can browse the welcome page of NGINX with entering the IP adress in the browser
+  * Install PHP with the following command
+  <pre>
+  sudo apt-get install php7.3-fpm php7.3-mbstring php7.3-mysql php7.3-
+  sudo nano /etc/nginx/sites-enabled/default</pre>
+  * In that file
+  replace
+  <pre>index index.html index.htm;</pre>
+  by
+  <pre>index index.php index.html index.htm;</pre>
+  uncomment
+  <pre>
+  #location ~ \.php$ {
+  # include snippets/fastcgi-php.conf;
+  #
+  # # With php5-cgi alone:
+  # fastcgi_pass 127.0.0.1:9000;
+  # # With php5-fpm:
+  # fastcgi_pass unix:/var/run/php5-fpm.sock;
+  #}</pre>
+  * Save the file with Ctrl+x, then y, then ENTER
+  * In console enter
+  <pre>
+  sudo systemctl reload nginx
+  sudo nano /var/www/html/index.php</pre>
+  * In that file
+  write
+  <pre><?php phpinfo(); ?\></pre>
+  * Save the file with Ctrl+x, then y, then ENTER
+  
