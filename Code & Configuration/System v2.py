@@ -666,7 +666,7 @@ class CardResetProgram(CardResetController):
         self.close()
         self.Thread = Threading(mifare_reader.StandardFrame(self.MainProgram))
         self.Thread.started.connect(lambda: tap_card_gui.show())
-        self.Thread.finished.connect(lambda: tap_card_gui.close())
+        self.Thread.finished.connect(self.DatabaseUpdate)
         self.Thread.start()
     
     def MainProgram(self, uid, access_key):
@@ -685,6 +685,13 @@ class CardResetProgram(CardResetController):
                     mifare_reader.MFRC522_Write(block, mifare_reader.DEFAULT_KEY + block_data[6:])
             except mifare_reader.AuthenticationError:
                 continue
+        return access_key
+    
+    def DatabaseUpdate(self):
+        tap_card_gui.close()
+        access_key = self.Thread.Result
+        student_id = Converter.StudentId(access_key)
+        SystemDatabase.DelectRecord(student_id)
 
 
 class CardDumpProgram(QtCore.QObject):
