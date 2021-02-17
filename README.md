@@ -95,9 +95,6 @@ This is a setup guidelines of our FYP.
   <pre>
   #location ~ \.php$ {
   # include snippets/fastcgi-php.conf;
-  #
-  # # With php5-cgi alone:
-  # fastcgi_pass 127.0.0.1:9000;
   # # With php5-fpm:
   # fastcgi_pass unix:/var/run/php5-fpm.sock;
   #}</pre>
