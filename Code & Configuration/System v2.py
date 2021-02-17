@@ -6,8 +6,8 @@ from pickle import dump, load
 from pprint import pformat
 from PyQt5 import QtCore, QtGui, QtWidgets
 import RPi.GPIO as GPIO
-import Saveuser #
 from sys import argv, exit
+import SystemDatabase
 from time import localtime, sleep, strftime, time
 from typing import Union
 
@@ -504,7 +504,9 @@ class CardInitializationGui(QtWidgets.QWidget):
         self.MainLayout.addWidget(self.StudentNameLabel, 2, 0)
         self.StudentNameLineEdit = QtWidgets.QLineEdit()
         self.MainLayout.addWidget(self.StudentNameLineEdit, 2, 1, 1, 2)
-        self.MainLayout.addWidget(QtWidgets.QLabel(), 3, 0, 1, 3)
+        self.HintLabel = QtWidgets.QLabel()
+        self.HintLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.MainLayout.addWidget(self.HintLabel, 3, 0, 1, 3)
         self.CancelButton = QtWidgets.QPushButton('Cancel')
         self.MainLayout.addWidget(self.CancelButton, 4, 0)
         self.MainLayout.addWidget(QtWidgets.QLabel(), 4, 1)
@@ -532,10 +534,18 @@ class CardInitializationController(CardInitializationGui):
 
     def StudentIdValidate(self, text):
         self.StudentIdOkSignal.emit(False)
+        self.HintLabel.setText('')
         pattern = QtCore.QRegExp('^\d{8}$')
         validator = QtGui.QRegExpValidator(pattern)
-        if validator.validate(text, 0)[0] == 2:
-            self.StudentIdOkSignal.emit(True)
+        try:
+            used = SystemDatabase.Search(text)
+            if used == 0:
+                if validator.validate(text, 0)[0] == 2:
+                    self.StudentIdOkSignal.emit(True)
+            else:
+                self.HintLabel.setText('This Student ID has been used.')
+        except SystemDatabase.mysql.connector.errors.ProgrammingError:
+            pass
     
     def StudentNameValidate(self, text):
         self.StudentNameOkSignal.emit(False)
@@ -606,7 +616,7 @@ class CardInitializationProgram(CardInitializationController):
     def DatabaseUpdate(self):
         tap_card_gui.close()
         uid = self.Thread.Result
-        Saveuser.main(uid, self.StudentName, self.StudentId)
+        SystemDatabase.main(uid, self.student_name, self.student_id)
 
 
 class CardResetGui(QtWidgets.QWidget):
