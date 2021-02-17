@@ -110,4 +110,8 @@ This is a setup guidelines of our FYP.
   write
   <pre><?php phpinfo(); ?\></pre>
   * Save the file with Ctrl+x, then y, then ENTER
-  
+  * Move the folder LockerSystemDatabase into /var/www/html
+  * Download bootstrap.min.css and bootstrap.min.js from https://getbootstrap.com/docs/5.0/getting-started/download/
+  * Move bootstrap.min.css and bootstrap.min.js under the folder LockerSystemDatabase
+  * Open 127.0.0.1/LockerSystemDatabase from raspberry pi browser or {your_raspberry_adress}/LockerSystemDatabase from another computer in the same local network
+  ## Done!
