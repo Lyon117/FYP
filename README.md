@@ -58,7 +58,7 @@ This is a setup guidelines of our FYP.
   sudo mysql -u root -p</pre>
   * Inside Mariadb
   <pre>
-  CREATE DATABASE historyrecordsystem;
+  CREATE DATABASE HISTORY_RECORD_SYSTEM;
   CREATE USER 'recordadmin'@'localhost' IDENTIFIED BY 'fyp123';
   GRANT ALL PRIVILEGES ON historyrecordsystem.* TO 'recordadmin'@'localhost';
   use HISTORY_RECORD_SYSTEM;
