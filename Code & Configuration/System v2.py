@@ -616,7 +616,7 @@ class CardInitializationProgram(CardInitializationController):
     def DatabaseUpdate(self):
         tap_card_gui.close()
         uid = self.Thread.Result
-        SystemDatabase.main(uid, self.student_name, self.student_id)
+        SystemDatabase.Update(uid, self.student_name, self.student_id)
 
 
 class CardResetGui(QtWidgets.QWidget):

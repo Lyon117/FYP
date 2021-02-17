@@ -134,7 +134,7 @@ def system_status_initialization():
 
 def system_log_initialization():
     with open(SYSTEM_LOG_FILE_PATH, 'w', encoding='utf-8-sig', newline='') as system_log_file:
-        writer(system_log_file).writerow([f'{"Time":<20}', 'Event'])
+        writer(system_log_file).writerow([f'{"Time":<19}', 'Event'])
 
 
 if __name__ == "__main__":
