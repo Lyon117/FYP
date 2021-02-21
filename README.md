@@ -58,18 +58,9 @@ This is a setup guidelines of our FYP.
   sudo mysql -u root -p</pre>
   * Inside Mariadb
   <pre>
-  CREATE DATABASE HISTORY_RECORD_SYSTEM;
-  CREATE USER 'recordadmin'@'localhost' IDENTIFIED BY 'fyp123';
-  GRANT ALL PRIVILEGES ON HISTORY_RECORD_SYSTEM.* TO 'recordadmin'@'localhost';
-  use HISTORY_RECORD_SYSTEM;
-  create table USER(
-  ID INT UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE,
-  STUDENT_ID VARCHAR(8) NOT NULL,
-  STUDENT_NAME VARCHAR(255) NOT NULL,
-  UID VARCHAR(15) NOT NULL,
-  INITIALIZATION_TIME TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (STUDENT_ID)
-  );
+  CREATE USER 'admin'@'localhost' IDENTIFIED BY 'adminpwflockersystem2021';
+  GRANT ALL PRIVILEGES ON *.* TO 'admin'@'localhost';
+  FLUSH PRIVILEGES;
   exit</pre>
   * In console
   <pre>
