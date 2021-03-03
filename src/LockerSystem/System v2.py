@@ -211,8 +211,11 @@ class SystemGui(QtWidgets.QWidget):
         frame_geometry = self.frameGeometry()
         frame_geometry.moveCenter(center_point)
         self.move(frame_geometry.topLeft())
+        self.MainLayout = QtWidgets.QGridLayout()
+        self.setLayout(self.MainLayout)
         self.UserInterfaceSetup()
         self.AdminInterfaceSetup()
+        self.CommonInterfaceSetup()
 
     def __interface__(self):
         '''Return a list which contain all interface'''
@@ -221,13 +224,8 @@ class SystemGui(QtWidgets.QWidget):
     def UserInterfaceSetup(self):
         # Interface setting
         self.UserInterface = QtWidgets.QFrame(self)
-        self.UserInterface.setFixedSize(self.ScreenWidth, self.ScreenHeight)
         self.UserInterfaceLayout = QtWidgets.QGridLayout()
         # First part
-        self.SystemNameLabel = QtWidgets.QLabel(self.SystemSetting['system_greeting'])
-        self.SystemNameLabel.setAlignment(QtCore.Qt.AlignCenter)
-        self.UserInterfaceLayout.addWidget(self.SystemNameLabel, 0, 0)
-        # Second part
         self.LockerButtonFrame = QtWidgets.QFrame()
         self.LockerButtonLayout = QtWidgets.QGridLayout()
         for row in range(self.SystemSetting['locker_row']):
@@ -237,8 +235,8 @@ class SystemGui(QtWidgets.QWidget):
                 exec(f'self.LockerButton{index}.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)')
                 exec(f'self.LockerButtonLayout.addWidget(self.LockerButton{index}, {row}, {column})')
         self.LockerButtonFrame.setLayout(self.LockerButtonLayout)
-        self.UserInterfaceLayout.addWidget(self.LockerButtonFrame, 1, 0, 7, 1)
-        # Third part
+        self.UserInterfaceLayout.addWidget(self.LockerButtonFrame, 0, 0, 7, 1)
+        # Second part
         self.FunctionButtonFrame = QtWidgets.QFrame()
         self.FunctionButtonLayout = QtWidgets.QGridLayout()
         self.BorrowButton = QtWidgets.QPushButton('Borrow')
@@ -250,19 +248,20 @@ class SystemGui(QtWidgets.QWidget):
         self.CardInfoButton = QtWidgets.QPushButton('CardInfo')
         self.CardInfoButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         self.FunctionButtonLayout.addWidget(self.CardInfoButton, 0, 4, 2, 2)
-        self.TimeLabel = QtWidgets.QLabel()
-        self.TimeLabel.setAlignment(QtCore.Qt.AlignRight)
-        self.FunctionButtonLayout.addWidget(self.TimeLabel, 1, 8, 1, 8)
+        self.TranslationBox = QtWidgets.QComboBox()
+        self.TranslationBox.addItems(['English', '中文'])
+        self.TranslationBox.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        self.FunctionButtonLayout.addWidget(self.TranslationBox, 0, 14, 2, 2)
         for i in range(16):
             self.FunctionButtonLayout.setColumnStretch(i, 1)
         self.FunctionButtonFrame.setLayout(self.FunctionButtonLayout)
-        self.UserInterfaceLayout.addWidget(self.FunctionButtonFrame, 8, 0)
+        self.UserInterfaceLayout.addWidget(self.FunctionButtonFrame, 7, 0)
         # Add widget to main layout
         self.UserInterface.setLayout(self.UserInterfaceLayout)
+        self.MainLayout.addWidget(self.UserInterface, 0, 0, 8, 1)
     
     def AdminInterfaceSetup(self):
         self.AdminInterface = QtWidgets.QFrame(self)
-        self.AdminInterface.setFixedSize(self.ScreenWidth, self.ScreenHeight)
         self.AdminInterfaceLayout = QtWidgets.QGridLayout()
         # First part
         self.AdminFunctionFrame = QtWidgets.QFrame()
@@ -275,12 +274,18 @@ class SystemGui(QtWidgets.QWidget):
         self.AdminFunctionLayout.addWidget(self.CardResetButton, 0, 1)
         self.CardDataDumpButton = QtWidgets.QPushButton('CardDataDump')
         self.CardDataDumpButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        self.AdminFunctionLayout.addWidget(self.CardDataDumpButton, 1, 0)
+        self.AdminFunctionLayout.addWidget(self.CardDataDumpButton, 0, 2)
         self.ExitButton = QtWidgets.QPushButton('Exit')
         self.ExitButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        self.AdminFunctionLayout.addWidget(self.ExitButton, 1, 1)
+        self.AdminFunctionLayout.addWidget(self.ExitButton, 1, 0)
+        self.UserRegistrationButton = QtWidgets.QPushButton('UserRegistrationDatabase')
+        self.UserRegistrationButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        self.AdminFunctionLayout.addWidget(self.UserRegistrationButton, 1, 1)
+        self.HistoryRecordButton = QtWidgets.QPushButton('HistoryRecordDatabase')
+        self.HistoryRecordButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        self.AdminFunctionLayout.addWidget(self.HistoryRecordButton, 1, 2)
         self.AdminFunctionFrame.setLayout(self.AdminFunctionLayout)
-        self.AdminInterfaceLayout.addWidget(self.AdminFunctionFrame, 0, 0, 8, 1)
+        self.AdminInterfaceLayout.addWidget(self.AdminFunctionFrame, 0, 0, 7, 1)
         # Second part
         self.ReturnFrame = QtWidgets.QFrame()
         self.ReturnLayout = QtWidgets.QGridLayout()
@@ -288,10 +293,27 @@ class SystemGui(QtWidgets.QWidget):
         self.UserGuiButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         self.ReturnLayout.addWidget(self.UserGuiButton, 0, 14, 1, 2)
         self.ReturnFrame.setLayout(self.ReturnLayout)
-        self.AdminInterfaceLayout.addWidget(self.ReturnFrame, 8, 0)
+        self.AdminInterfaceLayout.addWidget(self.ReturnFrame, 7, 0)
         # Add widget to main layout
         self.AdminInterface.setLayout(self.AdminInterfaceLayout)
+        self.MainLayout.addWidget(self.AdminInterface, 0, 0, 8, 1)
         self.AdminInterface.hide()
+    
+    def CommonInterfaceSetup(self):
+        self.CommonInterfaceLayout = QtWidgets.QGridLayout()
+        self.SystemNameLabel = QtWidgets.QLabel(f'{self.SystemSetting["system_name"]}')
+        self.SystemNameLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.CommonInterfaceLayout.addWidget(self.SystemNameLabel, 0, 0)
+        self.SystemCodeLabel = QtWidgets.QLabel(f'{self.SystemSetting["system_code"]}')
+        self.SystemCodeLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.CommonInterfaceLayout.addWidget(self.SystemCodeLabel, 0, 1)
+        self.SystemGreetingLabel = QtWidgets.QLabel(f'{self.SystemSetting["system_greeting_en"]}')
+        self.SystemGreetingLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.CommonInterfaceLayout.addWidget(self.SystemGreetingLabel, 0, 2, 1, 6)
+        self.TimeLabel = QtWidgets.QLabel()
+        self.TimeLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.CommonInterfaceLayout.addWidget(self.TimeLabel, 0, 8, 1, 8)
+        self.MainLayout.addLayout(self.CommonInterfaceLayout, 8, 0)
 
 
 class SystemController(SystemGui):
@@ -309,18 +331,21 @@ class SystemController(SystemGui):
     def UserFunctionConnection(self):
         self.BorrowButton.clicked.connect(lambda: locker_borrow_gui.LockerSelection())
         self.CardInfoButton.clicked.connect(lambda: card_info.Execute())
+        self.TranslationBox.currentTextChanged.connect(self.Translation)
         self.CurrentTime = GetCurrentTime()
         self.CurrentTime.start()
         self.CurrentTime.time_trigger.connect(self.Display)
     
     def Display(self, current_time):
-        self.TimeLabel.setText(f'Current Time: {current_time}')
+        self.TimeLabel.setText(f'{current_time}')
 
     def AdminFunctionConnection(self):
         self.CardInitializationButton.clicked.connect(lambda: card_initialization_gui.show())
         self.CardResetButton.clicked.connect(lambda: card_reset_gui.show())
         self.CardDataDumpButton.clicked.connect(lambda: card_dump.Execute())
         self.ExitButton.clicked.connect(self.ExitSystem)
+        self.UserRegistrationButton.clicked.connect(lambda: SearchDataBase('UserRegistration'))
+        self.HistoryRecordButton.clicked.connect(lambda: SearchDataBase('HistoryRecord'))
         self.UserGuiButton.clicked.connect(partial(self.ShowInterface, 0))
         
     def ShowInterface(self, interface_index):
@@ -366,6 +391,18 @@ class SystemController(SystemGui):
             locker_borrow_gui.GetLockerIndex(locker_index)
         elif self.SystemStatus[locker_index]['availability'] == 0:
             locker_return_gui.GetLockerIndex(locker_index)
+    
+    def Translation(self, language):
+        if language == 'English':
+            self.BorrowButton.setText('Borrow')
+            self.ReturnButton.setText('Return')
+            self.CardInfoButton.setText('CardInfo')
+            self.SystemGreetingLabel.setText(self.SystemSetting['system_greeting_en'])
+        elif language== '中文':
+            self.BorrowButton.setText('借用')
+            self.ReturnButton.setText('歸還')
+            self.CardInfoButton.setText('查詢')
+            self.SystemGreetingLabel.setText(self.SystemSetting['system_greeting_tc'])
 
 
 class SystemProgram(SystemController):
@@ -578,12 +615,6 @@ class CardInitializationController(CardInitializationGui):
     def closeEvent(self, event):
         self.StudentIdLineEdit.clear()
         self.StudentNameLineEdit.clear()
-        event.accept()
-
-    def keyPressEvent(self, event):
-        print('Pressed')
-        if event.key() == QtCore.Qt.Key_Enter and self.ComfirmButton.isEnabled():
-            self.CardInitializationPreparation()
         event.accept()
 
 
@@ -1000,6 +1031,15 @@ class LockerReturnProgram(LockerReturnController):
                 system_log_file.write(f'{return_time_string},Return - Locker {self.LockerIndex} was return by {student_id} {student_name}\n')
             system_gui.LockerStatusRefresh()
             Database.HistoryRecordUpdateReturn(student_id, self.LockerIndex, borrow_time_string, return_time_string)
+
+
+def SearchDataBase(database_name):
+    if database_name == 'UserRegistration':
+        result = Database.UserRegistrationSearchAll()
+    elif database_name == 'HistoryRecord':
+        result = Database.HistoryRecordSearchAll()
+    display_gui.show()
+    display_gui.TextEdit.setText(f'{pformat(result)}')
 
 
 def get_screen_infomation():

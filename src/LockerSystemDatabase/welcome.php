@@ -22,6 +22,9 @@ if(isset($_SESSION["loggedin"]) != true) {
                 <li class="nav-item">
                     <a href="usersregistration.php" class="nav-link">User registration</a>
                 </li>
+                <li class="nav-item">
+                    <a href="historyrecord.php" class="nav-link">History record</a>
+                </li>
             </ul>
         </div>
     </nav>

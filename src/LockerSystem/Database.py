@@ -79,3 +79,17 @@ def HistoryRecordUpdateBorrow(cursor, database, student_id, locker_id, borrow_ti
 def HistoryRecordUpdateReturn(cursor, database, student_id, locker_id, borrow_time, return_time):
     cursor.execute(f"UPDATE HISTORY_RECORD SET RETURN_TIME='{return_time}' WHERE STUDENT_ID='{str(student_id)}' AND LOCKER_ID='{str(locker_id)}' AND BORROW_TIME='{borrow_time}'")
     database.commit()
+
+
+@__AdminLogin('LOCKER_SYSTEM')
+def UserRegistrationSearchAll(cursor, database):
+    cursor.execute("SELECT * FROM USER_REGISTRATION")
+    result = cursor.fetchall()
+    return result
+
+
+@__AdminLogin('LOCKER_SYSTEM')
+def HistoryRecordSearchAll(cursor, database):
+    cursor.execute("SELECT * FROM HISTORY_RECORD")
+    result = cursor.fetchall()
+    return result

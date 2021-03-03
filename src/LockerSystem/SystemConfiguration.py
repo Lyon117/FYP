@@ -16,7 +16,7 @@ def system_configuration_initialization():
     locker_column = get_locker_column()
     locker_row = get_locker_row()
     system_greeting = get_system_greeting(system_name)
-    system_configuration_data = {'system_name': system_name, 'system_code': system_code, 'locker_column': locker_column, 'locker_row': locker_row, 'system_greeting': system_greeting}
+    system_configuration_data = {'system_name': system_name, 'system_code': system_code, 'locker_column': locker_column, 'locker_row': locker_row, 'system_greeting_en': system_greeting[0], 'system_greeting_tc': system_greeting[1]}
     with open(SYSTEM_CONFIGURATION_FILE_PATH, 'wb') as system_configuration_file:
         dump(system_configuration_data, system_configuration_file)
 
@@ -74,10 +74,15 @@ def get_locker_row() -> int:
 
 
 def get_system_greeting(system_name: str) -> str:
-    system_greeting = input('Please input the system greeting:\n')
-    if system_greeting == '':
-        system_greeting = f'Welcome to use {system_name}'
-    return system_greeting
+    system_greeting_list = list()
+    for language in ['English', 'Chinese']:
+        system_greeting = input(f'Please input the system greeting for {language}:\n')
+        if system_greeting == '' and language == 'English':
+            system_greeting = f'Welcome to use {system_name}'
+        elif system_greeting == '' and language == 'Chinese':
+            system_greeting = f'歡迎來使用 {system_name}'
+        system_greeting_list.append(system_greeting)
+    return system_greeting_list
 
 
 def system_configuration_alteration():

@@ -9,7 +9,7 @@ if(isset($_SESSION["loggedin"]) != true) {
     $password = $_SESSION["password"];
     $dbname = "LOCKER_SYSTEM";
     $conn = mysqli_connect($servername, $username, $password, $dbname);
-    $sql = "SELECT * FROM USER_REGISTRATION";
+    $sql = "SELECT * FROM HISTORY_RECORD";
     $result = mysqli_query($conn, $sql);
 }
 ?>
@@ -31,21 +31,21 @@ if(isset($_SESSION["loggedin"]) != true) {
                     <a href="usersregistration.php" class="nav-link active">User registration</a>
                 </li>
                 <li class="nav-item">
-                    <a href="historyrecord.php" class="nav-link">History record</a>
+                    <a href="historyrecord.php" class="nav-link active">History record</a>
                 </li>
             </ul>
         </div>
     </nav>
     <div class="container">
-        <h2>Users Registration</h2>
+        <h2>History record</h2>
         <table>
             <thead>
                 <tr>
                     <th>#</th>
                     <th>Student ID</th>
-                    <th>Student Name</th>
-                    <th>UID</th>
-                    <th>Registration</th>
+                    <th>Locker ID</th>
+                    <th>Borrow Time</th>
+                    <th>Return Time</th>
                 </tr>
             </thead>
             <tbody>
@@ -55,9 +55,9 @@ if(isset($_SESSION["loggedin"]) != true) {
                         echo '<tr>';
                         echo '<td>' . $row['ID'] . '</td>';
                         echo '<td>' . $row['STUDENT_ID'] . '</td>';
-                        echo '<td>' . $row['STUDENT_NAME'] . '</td>';
-                        echo '<td>' . $row['UID'] . '</td>';
-                        echo '<td>' . $row['REGISTRATION_TIME'] . '</td>';
+                        echo '<td>' . $row['LOCKER_ID'] . '</td>';
+                        echo '<td>' . $row['BORROW_TIME'] . '</td>';
+                        echo '<td>' . $row['RETURN_TIME'] . '</td>';
                         echo '</tr>';
                     }
                 }
