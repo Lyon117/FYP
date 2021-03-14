@@ -81,8 +81,8 @@ class MFRC522libExtension(MFRC522lib.MFRC522lib):
 
     def ChecksumAuth(self, uid):
         data = self.GetKey(uid)
-        if checksum_algorithm(data[:4]) != data[4] or checksum_algorithm(data[:5]) != data[5]:
-            raise self.AuthenticationErrorM
+        if Converter.GetChecksum(data[:4]) != data[4] or Converter.GetChecksum(data[:5]) != data[5]:
+            raise self.AuthenticationError
     
     def GetKey(self, uid):
         self.MFRC522_Auth(uid, 1, self.DEFAULT_KEY)
@@ -184,9 +184,9 @@ class Converter:
     def AddChecksum(student_id_byte_list: list) -> list:
         '''Add the checksum after the student id byte list.'''
         if type(student_id_byte_list) == list and len(student_id_byte_list) == 4:
-            first_checksum = checksum_algorithm(student_id_byte_list)
+            first_checksum = Converter.GetChecksum(student_id_byte_list)
             student_id_byte_list += [first_checksum]
-            second_checksum = checksum_algorithm(student_id_byte_list)
+            second_checksum = Converter.GetChecksum(student_id_byte_list)
             student_id_byte_list += [second_checksum]
             return student_id_byte_list
         else:
@@ -275,6 +275,11 @@ class Converter:
         else:
             raise TypeError('Input value should be an integer')
 
+    @staticmethod
+    def GetChecksum(byte_list: list) -> int:
+        checksum = sum([byte_list[i] * -i for i in range(-len(byte_list), 0)]) % 251
+        return checksum
+
 
 class KeyPadDriver:
     def __init__(self):
@@ -341,21 +346,11 @@ class KeyPadDriver:
 
 # System window
 class SystemView(QtWidgets.QWidget):
-    def __init__(self, frameless):
+    def __init__(self):
         super().__init__()
-        self.ScreenWidth, self.ScreenHeight, center_point = get_screen_infomation()
-        self.setFixedSize(self.ScreenWidth, self.ScreenHeight)
-        self.setWindowTitle('System')
-        if frameless:
-            self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
-        self.CommonFont = QtGui.QFont()
-        self.CommonFont.setFamily('Calibri')
-        self.CommonFont.setPointSize(36)
-        self.setFont(self.CommonFont)
-        frame_geometry = self.frameGeometry()
-        frame_geometry.moveCenter(center_point)
-        self.move(frame_geometry.topLeft())
-        self.Language = 'English'
+        set_widget_setting(self, 1, 'Calibri', 36, 'LockerSystem')
+        self.ScreenWidth = screen_width
+        self.ScreenHeight = screen_height
         self.MainLayout = QtWidgets.QGridLayout()
         self.UserInterfaceSetup()
         self.AdminInterfaceSetup()
@@ -420,24 +415,15 @@ class SystemView(QtWidgets.QWidget):
         # First part
         self.AdminFunctionFrame = QtWidgets.QFrame()
         self.AdminFunctionLayout = QtWidgets.QGridLayout()
-        self.CardInitializationButton = QtWidgets.QPushButton('CardInitialization')
-        self.CardInitializationButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        self.AdminFunctionLayout.addWidget(self.CardInitializationButton, 0, 0)
-        self.CardResetButton = QtWidgets.QPushButton('CardReset')
-        self.CardResetButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        self.AdminFunctionLayout.addWidget(self.CardResetButton, 0, 1)
-        self.CardDataDumpButton = QtWidgets.QPushButton('CardDataDump')
-        self.CardDataDumpButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        self.AdminFunctionLayout.addWidget(self.CardDataDumpButton, 1, 0)
+        self.CardManagementButton = QtWidgets.QPushButton('CardManagement')
+        self.CardManagementButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        self.AdminFunctionLayout.addWidget(self.CardManagementButton, 0, 0)
+        self.DatabaseManagementButton = QtWidgets.QPushButton('DatabaseManagement')
+        self.DatabaseManagementButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        self.AdminFunctionLayout.addWidget(self.DatabaseManagementButton, 0, 1)
         self.ExitButton = QtWidgets.QPushButton('Exit')
         self.ExitButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         self.AdminFunctionLayout.addWidget(self.ExitButton, 1, 1)
-        self.UserRegistrationButton = QtWidgets.QPushButton('UserRegistrationDatabase')
-        self.UserRegistrationButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        self.AdminFunctionLayout.addWidget(self.UserRegistrationButton, 2, 0)
-        self.HistoryRecordButton = QtWidgets.QPushButton('HistoryRecordDatabase')
-        self.HistoryRecordButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        self.AdminFunctionLayout.addWidget(self.HistoryRecordButton, 2, 1)
         self.AdminFunctionFrame.setLayout(self.AdminFunctionLayout)
         self.AdminInterfaceLayout.addWidget(self.AdminFunctionFrame, 0, 0, 7, 1)
         # Second part
@@ -479,8 +465,8 @@ class SystemView(QtWidgets.QWidget):
 
 
 class SystemController(SystemView):
-    def __init__(self, frameless):
-        super().__init__(frameless)
+    def __init__(self):
+        super().__init__()
         # Authentication key
         self.AuthenticationKey = [1, 2, 4, 4, 4]
         self.InputAuthenticationKey = []
@@ -508,12 +494,9 @@ class SystemController(SystemView):
         self.TimeLabel.setText(f'{current_time}')
 
     def AdminFunctionConnection(self):
-        self.CardInitializationButton.clicked.connect(lambda: card_initialization.show())
-        self.CardResetButton.clicked.connect(lambda: card_reset.show())
-        self.CardDataDumpButton.clicked.connect(lambda: card_dump.Execute())
+        self.CardManagementButton.clicked.connect(lambda: card_management.show())
+        self.DatabaseManagementButton.clicked.connect(lambda: database_management.show())
         self.ExitButton.clicked.connect(lambda: exit_program.show())
-        self.UserRegistrationButton.clicked.connect(lambda: search_database('UserRegistration'))
-        self.HistoryRecordButton.clicked.connect(lambda: search_database('HistoryRecord'))
         self.UserGuiButton.clicked.connect(partial(self.ShowInterface, 0))
         
     def ShowInterface(self, interface_index):
@@ -572,17 +555,16 @@ class SystemController(SystemView):
                 exec(f'self.LockerButton{locker}.setStyleSheet("background-color: green; border: none; font-size: 36px; font-family: Calibri")')
             else:
                 exec(f'self.LockerButton{locker}.setStyleSheet("background-color: red; border: none; font-size: 36px; font-family: Calibri")')
-        self.setFont(self.CommonFont)
 
 
 class SystemModel(SystemController):
-    def __init__(self, frameless=True):
+    def __init__(self):
         # Get the configuration from the configuration file
         self.SystemConfiguration = self.__GetSystemConfiguration()
         self.SystemStatus = self.__GetSystemStatus()
         self.__SetSystemLog()
         Database.Initialization()
-        super().__init__(frameless)
+        super().__init__()
     
     def __GetSystemConfiguration(self):
         with open(SYSTEM_CONFIGURATION_FILE_PATH, 'r', encoding='utf-8') as system_configuration_file:
@@ -615,20 +597,7 @@ class SystemModel(SystemController):
 class TapCardView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        screen_width, screen_height, center_point = get_screen_infomation()
-        self.setFixedSize(screen_width // 4, screen_height // 4)
-        self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
-        self.CommonFont = QtGui.QFont()
-        self.CommonFont.setFamily('Calibri')
-        self.CommonFont.setPointSize(12)
-        self.setFont(self.CommonFont)
-        frame_geometry = self.frameGeometry()
-        frame_geometry.moveCenter(center_point)
-        self.move(frame_geometry.topLeft())
-        self.setWindowModality(QtCore.Qt.ApplicationModal)
-        self.setWindowTitle('TapCard')
-        self.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint)
-        self.Language = 'English'
+        set_widget_setting(self, 4, 'Calibri', 12, 'TapCard')
         # Translation
         self.TapCardPrompt = {'English': 'Please tap your card', 'Chinese': '請拍卡'}
         self.CancelButtonText = {'English': 'Cancel', 'Chinese': '取消'}
@@ -663,20 +632,7 @@ class TapCardController(TapCardView):
 class DisplayView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        screen_width, screen_height, center_point = get_screen_infomation()
-        self.setFixedSize(screen_width // 2, screen_height // 2)
-        self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
-        self.CommonFont = QtGui.QFont()
-        self.CommonFont.setFamily('Consolas')
-        self.CommonFont.setPointSize(12)
-        self.setFont(self.CommonFont)
-        frame_geometry = self.frameGeometry()
-        frame_geometry.moveCenter(center_point)
-        self.move(frame_geometry.topLeft())
-        self.setWindowModality(QtCore.Qt.ApplicationModal)
-        self.setWindowTitle('Display')
-        self.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint)
-        self.Language = 'English'
+        set_widget_setting(self, 2, 'Consolas', 12, 'Display')
         # Translation
         self.CancelButtonText = {'English': 'Cancel', 'Chinese': '取消'}
         # Interface setup
@@ -707,22 +663,37 @@ class DisplayController(DisplayView):
         event.accept()
 
 
+class WarningMessageBox(QtWidgets.QMessageBox):
+    def __init__(self, message):
+        super().__init__()
+        # Set font property
+        font = QtGui.QFont()
+        font.setFamily('Calibri')
+        font.setPointSize(12)
+        self.setFont(font)
+        # Set widget property
+        self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
+        # Set default language
+        self.Language = 'English'
+        self.setIcon(self.Warning)
+        self.setText(message)
+        comfirm = self.addButton('Corfirm', self.AcceptRole)
+        cancel = self.addButton('Cancel', self.RejectRole)
+        
+    
+    def AcceptAction(self, function, *arg):
+        reply = self.exec()
+        if reply == self.AcceptRole:
+            function(*arg)
+        elif reply == self.RejectRole:
+            pass
+
+
 # User function window
 class LockerBorrowView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        screen_width, screen_height, center_point = get_screen_infomation()
-        self.setFixedSize(screen_width // 4, screen_height // 4)
-        self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
-        self.CommonFont = QtGui.QFont()
-        self.CommonFont.setFamily('Calibri')
-        self.CommonFont.setPointSize(12)
-        self.setFont(self.CommonFont)
-        frame_geometry = self.frameGeometry()
-        frame_geometry.moveCenter(center_point)
-        self.move(frame_geometry.topLeft())
-        self.setWindowModality(QtCore.Qt.ApplicationModal)
-        self.Language = 'English'
+        set_widget_setting(self, 4, 'Calibri', 12, 'LockerBorrow')
         # Translation
         self.BorrowMessageLabel_2Prompt = {'English': 'Please put all the things you want into locker \nand close the door properly \nbefore you click the confirm button.', 'Chinese': '請將您的東西全部放進儲物櫃，\n並正確關閉櫃門，\n然後再點擊確認按鈕。'}
         self.CancelButtonText = {'English': 'Cancel', 'Chinese': '取消'}
@@ -833,18 +804,7 @@ class LockerBorrowModel(LockerBorrowController):
 class LockerReturnView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        screen_width, screen_height, center_point = get_screen_infomation()
-        self.setFixedSize(screen_width // 4, screen_height // 4)
-        self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
-        self.CommonFont = QtGui.QFont()
-        self.CommonFont.setFamily('Calibri')
-        self.CommonFont.setPointSize(12)
-        self.setFont(self.CommonFont)
-        frame_geometry = self.frameGeometry()
-        frame_geometry.moveCenter(center_point)
-        self.move(frame_geometry.topLeft())
-        self.setWindowModality(QtCore.Qt.ApplicationModal)
-        self.Language = 'English'
+        set_widget_setting(self, 4, 'Calibri', 12, 'LockerReturn')
         # Translation
         self.ReturnMessageLabel_2Prompt = {'English': 'Are you comfirm to return?', 'Chinese': '您確定要歸還嗎?'}
         self.CancelButtonText = {'English': 'Cancel', 'Chinese': '取消'}
@@ -1030,20 +990,61 @@ class Help(QtCore.QObject):
 
 
 # Admin function window
+# Card related
+class CardManagementView(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        set_widget_setting(self, 4, 'Calibri', 12, 'CardManagaement')
+        # Interface layout setup
+        self.MainLayout = QtWidgets.QGridLayout()
+        self.CardInitializationButton = QtWidgets.QPushButton('CardInitialization')
+        self.CardInitializationButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        self.MainLayout.addWidget(self.CardInitializationButton, 0, 0, 4, 3)
+        self.CardResetButton = QtWidgets.QPushButton('CardReset')
+        self.CardResetButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        self.MainLayout.addWidget(self.CardResetButton, 4, 0, 4, 3)
+        self.CardDumpButton = QtWidgets.QPushButton('CardDump')
+        self.CardDumpButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        self.MainLayout.addWidget(self.CardDumpButton, 8, 0, 4, 3)
+        self.TopUpButton = QtWidgets.QPushButton('TopUp')
+        self.TopUpButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        self.MainLayout.addWidget(self.TopUpButton, 12, 0, 4, 3)
+        self.CancelButton = QtWidgets.QPushButton('Cancel')
+        self.MainLayout.addWidget(self.CancelButton, 17, 1, 2, 1)
+        self.setLayout(self.MainLayout)
+
+
+class CardManagementController(CardManagementView):
+    def __init__(self):
+        super().__init__()
+        self.CardInitializationButton.clicked.connect(self.RunCardInitialization)
+        self.CardResetButton.clicked.connect(self.RunCardReset)
+        self.CardDumpButton.clicked.connect(self.RunCardDump)
+        self.TopUpButton.clicked.connect(self.RunTopUp)
+        self.CancelButton.clicked.connect(self.close)
+    
+    def RunCardInitialization(self):
+        self.close()
+        card_initialization.show()
+
+    def RunCardReset(self):
+        self.close()
+        card_reset.ShowWarning()
+    
+    def RunCardDump(self):
+        self.close()
+        card_dump.Execute()
+    
+    def RunTopUp(self):
+        self.close()
+        balance.show()
+        balance.Execute()
+
+
 class CardInitializationView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        screen_width, screen_height, center_point = get_screen_infomation()
-        self.setFixedSize(screen_width // 4, screen_height // 4)
-        self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
-        self.CommonFont = QtGui.QFont()
-        self.CommonFont.setFamily('Calibri')
-        self.CommonFont.setPointSize(12)
-        self.setFont(self.CommonFont)
-        frame_geometry = self.frameGeometry()
-        frame_geometry.moveCenter(center_point)
-        self.move(frame_geometry.topLeft())
-        self.setWindowModality(QtCore.Qt.ApplicationModal)
+        set_widget_setting(self, 4, 'Calibri', 12, 'CardInitialization')
         # Interface layout setup
         self.MainLayout = QtWidgets.QGridLayout()
         self.HintLabel = QtWidgets.QLabel('Please input:')
@@ -1173,48 +1174,15 @@ class CardInitializationModel(CardInitializationController):
         Database.UserRegistrationUpdate(uid, self.student_name, self.student_id, initialization_time_string)
 
 
-class CardResetView(QtWidgets.QWidget):
-    def __init__(self):
-        super().__init__()
-        screen_width, screen_height, center_point = get_screen_infomation()
-        self.setFixedSize(screen_width // 4, screen_height // 4)
-        self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
-        self.CommonFont = QtGui.QFont()
-        self.CommonFont.setFamily('Calibri')
-        self.CommonFont.setPointSize(12)
-        self.setFont(self.CommonFont)
-        frame_geometry = self.frameGeometry()
-        frame_geometry.moveCenter(center_point)
-        self.move(frame_geometry.topLeft())
-        self.setWindowModality(QtCore.Qt.ApplicationModal)
-        # Interface layout setup
-        self.MainLayout = QtWidgets.QGridLayout()
-        self.ResetMessageLabel_1 = QtWidgets.QLabel('Are you sure to reset this card.')
-        self.ResetMessageLabel_1.setAlignment(QtCore.Qt.AlignCenter)
-        self.ResetMessageLabel_2 = QtWidgets.QLabel('All data cannot be recovered!')
-        self.ResetMessageLabel_2.setAlignment(QtCore.Qt.AlignCenter)
-        self.MainLayout.addWidget(self.ResetMessageLabel_1, 0, 0, 1, 3)
-        self.MainLayout.addWidget(self.ResetMessageLabel_2, 1, 0, 1, 3)
-        self.CancelButton = QtWidgets.QPushButton('Cancel')
-        self.MainLayout.addWidget(self.CancelButton, 2, 0)
-        self.ConfirmButton = QtWidgets.QPushButton('Comfirm')
-        self.MainLayout.addWidget(self.ConfirmButton, 2, 2)
-        self.setLayout(self.MainLayout)
-
-
-class CardResetController(CardResetView):
-    def __init__(self):
-        super().__init__()
-        self.CancelButton.clicked.connect(self.close)
-        self.ConfirmButton.clicked.connect(self.Execute)
-
-
-class CardResetModel(CardResetController):
+class CardReset(QtCore.QObject):
     def __init__(self):
         super().__init__()
     
+    def ShowWarning(self):
+        warning_messagebox = WarningMessageBox(f'You are going to reset your card.\nAre you sure?')
+        warning_messagebox.AcceptAction(self.Execute)
+    
     def Execute(self):
-        self.close()
         self.Thread = Threading(mifare_reader.StandardFrame(self.MainProgram))
         self.Thread.started.connect(lambda: tap_card.show())
         self.Thread.finished.connect(self.DatabaseUpdate)
@@ -1274,19 +1242,7 @@ class CardDump(QtCore.QObject):
 class BalanceView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        screen_width, screen_height, center_point = get_screen_infomation()
-        self.setFixedSize(screen_width // 4, screen_height // 4)
-        self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
-        self.CommonFont = QtGui.QFont()
-        self.CommonFont.setFamily('Calibri')
-        self.CommonFont.setPointSize(12)
-        self.setFont(self.CommonFont)
-        frame_geometry = self.frameGeometry()
-        frame_geometry.moveCenter(center_point)
-        self.move(frame_geometry.topLeft())
-        self.setWindowModality(QtCore.Qt.ApplicationModal)
-        self.setWindowTitle('Balance')
-        self.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint)
+        set_widget_setting(self, 4, 'Calibri', 12, 'Balance')
         # Interface setup
         self.MainLayout = QtWidgets.QGridLayout(self)
         self.TopupLabel = QtWidgets.QLabel('Please input the top-up value')
@@ -1323,40 +1279,148 @@ class BalanceModel(BalanceController):
         keypad.Disconnect()
 
 
+# Database related
+class DatabaseManagementView(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        set_widget_setting(self, 4, 'Calibri', 12, 'DatabaseManagaement')
+        # Interface layout setup
+        self.MainLayout = QtWidgets.QGridLayout()
+        self.PrintDatabaseButton = QtWidgets.QPushButton('PrintDatabase')
+        self.PrintDatabaseButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        self.MainLayout.addWidget(self.PrintDatabaseButton, 0, 0, 5, 3)
+        self.ResetDatabaseButton = QtWidgets.QPushButton('ResetDatabase')
+        self.ResetDatabaseButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        self.MainLayout.addWidget(self.ResetDatabaseButton, 5, 0, 5, 3)
+        self.CancelButton = QtWidgets.QPushButton('Cancel')
+        self.MainLayout.addWidget(self.CancelButton, 17, 1, 2, 1)
+        self.setLayout(self.MainLayout)
+
+
+class DatabaseManagementController(DatabaseManagementView):
+    def __init__(self):
+        super().__init__()
+        self.PrintDatabaseButton.clicked.connect(self.PrintDatabase)
+        self.ResetDatabaseButton.clicked.connect(self.ResetDatabase)
+        self.CancelButton.clicked.connect(self.close)
+    
+    def PrintDatabase(self):
+        self.close()
+        print_database.show()
+    
+    def ResetDatabase(self):
+        self.close()
+        reset_database.show()
+
+
+class PrintDatabaseView(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        set_widget_setting(self, 4, 'Calibri', 12, 'PrintDatabase')
+        # Interface layout setup
+        self.MainLayout = QtWidgets.QGridLayout()
+        self.PrintUserRegistrationButton = QtWidgets.QPushButton('PrintUserRegistration')
+        self.PrintUserRegistrationButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        self.MainLayout.addWidget(self.PrintUserRegistrationButton, 0, 0, 5, 3)
+        self.PrintHistoryRecordButton = QtWidgets.QPushButton('PrintHistoryRecord')
+        self.PrintHistoryRecordButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        self.MainLayout.addWidget(self.PrintHistoryRecordButton, 5, 0, 5, 3)
+        self.CancelButton = QtWidgets.QPushButton('Cancel')
+        self.MainLayout.addWidget(self.CancelButton, 17, 1, 2, 1)
+        self.setLayout(self.MainLayout)
+
+
+class PrintDatabaseController(PrintDatabaseView):
+    def __init__(self):
+        super().__init__()
+        self.PrintUserRegistrationButton.clicked.connect(partial(self.PrintAllRecord, 'USER_REGISTRATION'))
+        self.PrintHistoryRecordButton.clicked.connect(partial(self.PrintAllRecord, 'HISTORY_RECORD'))
+        self.CancelButton.clicked.connect(self.CloseWindow)
+    
+
+class PrintDatabaseModel(PrintDatabaseController):
+    def __init__(self):
+        super().__init__()
+
+    def PrintAllRecord(self, table):
+        result = Database.PrintAllRecord(table)
+        self.close()
+        display.Display(f'{pformat(result)}')
+    
+    def CloseWindow(self):
+        self.close()
+        database_management.show()
+
+
+class ResetDatabaseView(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        set_widget_setting(self, 4, 'Calibri', 12, 'PrintDatabase')
+        # Interface layout setup
+        self.MainLayout = QtWidgets.QGridLayout()
+        self.ResetUserRegistrationButton = QtWidgets.QPushButton('ResetUserRegistration')
+        self.ResetUserRegistrationButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        self.MainLayout.addWidget(self.ResetUserRegistrationButton, 0, 0, 5, 3)
+        self.ResetHistoryRecordButton = QtWidgets.QPushButton('ResetHistoryRecord')
+        self.ResetHistoryRecordButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        self.MainLayout.addWidget(self.ResetHistoryRecordButton, 5, 0, 5, 3)
+        self.CancelButton = QtWidgets.QPushButton('Cancel')
+        self.MainLayout.addWidget(self.CancelButton, 17, 1, 2, 1)
+        self.setLayout(self.MainLayout)
+
+
+class ResetDatabaseController(ResetDatabaseView):
+    def __init__(self):
+        super().__init__()
+        self.ResetUserRegistrationButton.clicked.connect(partial(self.ResetTableWarning, 'USER_REGISTRATION'))
+        self.ResetHistoryRecordButton.clicked.connect(partial(self.ResetTableWarning, 'HISTORY_RECORD'))
+        self.CancelButton.clicked.connect(self.CloseWindow)
+
+
+class ResetDatabaseModel(ResetDatabaseController):
+    def __init__(self):
+        super().__init__()
+
+    def ResetTableWarning(self, table):
+        self.close()
+        warning_messagebox = WarningMessageBox(f'You are going to reset table {table}.\nAre you sure?')
+        warning_messagebox.AcceptAction(self.ResetTable, table)
+
+    def ResetTable(self, table):
+        Database.ResetTable(table)
+    
+    def CloseWindow(self):
+        self.close()
+        database_management.show()
+    
+
 class ExitProgramView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        screen_width, screen_height, center_point = get_screen_infomation()
-        self.setFixedSize(screen_width // 4, screen_height // 4)
-        self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
-        self.CommonFont = QtGui.QFont()
-        self.CommonFont.setFamily('Calibri')
-        self.CommonFont.setPointSize(12)
-        self.setFont(self.CommonFont)
-        frame_geometry = self.frameGeometry()
-        frame_geometry.moveCenter(center_point)
-        self.move(frame_geometry.topLeft())
-        self.setWindowModality(QtCore.Qt.ApplicationModal)
+        set_widget_setting(self, 4, 'Calibri', 12, 'ExitProgram')
         # Interface layout setup
         self.MainLayout = QtWidgets.QGridLayout()
         self.ExitProgramButton = QtWidgets.QPushButton('ExitProgram')
         self.ExitProgramButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        self.MainLayout.addWidget(self.ExitProgramButton, 0, 0)
+        self.MainLayout.addWidget(self.ExitProgramButton, 0, 0, 5, 3)
         self.RestartProgramButton = QtWidgets.QPushButton('RestartProgram')
         self.RestartProgramButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        self.MainLayout.addWidget(self.RestartProgramButton, 1, 0)
+        self.MainLayout.addWidget(self.RestartProgramButton, 5, 0, 5, 3)
         self.PowerOffButton = QtWidgets.QPushButton('PowerOff')
         self.PowerOffButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        self.MainLayout.addWidget(self.PowerOffButton, 2, 0)
+        self.MainLayout.addWidget(self.PowerOffButton, 10, 0, 5, 3)
+        self.CancelButton = QtWidgets.QPushButton('Cancel')
+        self.MainLayout.addWidget(self.CancelButton, 17, 1, 2, 1)
         self.setLayout(self.MainLayout)
 
 
 class ExitProgramController(ExitProgramView):
     def __init__(self):
         super().__init__()
-        self.ExitProgramButton.clicked.connect(self.ExitProgram)
-        self.RestartProgramButton.clicked.connect(self.RestartProgram)
-        self.PowerOffButton.clicked.connect(self.PowerOff)
+        self.ExitProgramButton.clicked.connect(partial(self.ActionConfirm, 'ExitProgram'))
+        self.RestartProgramButton.clicked.connect(partial(self.ActionConfirm, 'RestartProgram'))
+        self.PowerOffButton.clicked.connect(partial(self.ActionConfirm, 'PowerOff'))
+        self.CancelButton.clicked.connect(self.close)
 
 
 class ExitProgramModel(ExitProgramController):
@@ -1364,25 +1428,24 @@ class ExitProgramModel(ExitProgramController):
         super().__init__()
         self.PID = getpid()
 
-    def ExitProgram(self):
+    def ActionConfirm(self, mode):
         self.close()
-        system.close()
+        warning_messagebox = WarningMessageBox(f'Are you sure to {mode}?')
+        if mode == 'ExitProgram':
+            warning_messagebox.AcceptAction(self.ExitProgram)
+        elif mode == 'RestartProgram':
+            warning_messagebox.AcceptAction(self.RestartProgram)
+        elif mode == 'PowerOff':
+            warning_messagebox.AcceptAction(self.PowerOff)
+
+    def ExitProgram(self):
+        exit(0)
 
     def RestartProgram(self):
-        subprocess = Popen(['python3', EXTERNAL_CONTROLLER_PATH, f'{self.PID}', 'Restart'])
-        _ = subprocess.communicate()
+        Popen(['python3', EXTERNAL_CONTROLLER_PATH, f'{self.PID}', 'Restart'])
 
     def PowerOff(self):
-        subprocess = Popen(['python3', EXTERNAL_CONTROLLER_PATH, f'{self.PID}', 'PowerOff'])
-        _ = subprocess.communicate()
-
-
-def search_database(database_name):
-    if database_name == 'UserRegistration':
-        result = Database.UserRegistrationSearchAll()
-    elif database_name == 'HistoryRecord':
-        result = Database.HistoryRecordSearchAll()
-    display.Display(f'{pformat(result)}')
+        Popen(['python3', EXTERNAL_CONTROLLER_PATH, f'{self.PID}', 'PowerOff'])
 
 
 def get_screen_infomation():
@@ -1393,8 +1456,24 @@ def get_screen_infomation():
     return screen_width, screen_height, center_point
 
 
-def checksum_algorithm(data: list) -> int:
-    return sum([data[i] * -i for i in range(-len(data), 0)]) % 251
+def set_widget_setting(widget_object, size, font_family, font_size, window_title=''):
+    '''size is the magnification against the screen size, i.e. widget size = 480x270 when screen size = 1920x1080 and size = 4'''
+    # Set widget size and position
+    widget_object.setFixedSize(screen_width // size, screen_height // size)
+    frame_geometry = widget_object.frameGeometry()
+    frame_geometry.moveCenter(center_point)
+    widget_object.move(frame_geometry.topLeft())
+    # Set font property
+    font = QtGui.QFont()
+    font.setFamily(font_family)
+    font.setPointSize(font_size)
+    widget_object.setFont(font)
+    # Set widget property
+    widget_object.setWindowFlag(QtCore.Qt.FramelessWindowHint)
+    widget_object.setWindowModality(QtCore.Qt.ApplicationModal)
+    widget_object.setWindowTitle(window_title)
+    # Set default language
+    widget_object.Language = 'English'
 
 
 def set_ui_language(language):
@@ -1407,17 +1486,11 @@ def set_ui_language(language):
     help.SetLanguage(language)
 
 
-def kill_external_controller(pid):
-    pid = int(pid)
-    kill(pid, 9)
-
-
 if __name__ == '__main__':
     if exists(SYSTEM_CONFIGURATION_FILE_PATH):
         GPIO.setwarnings(False)
-        if len(argv) == 2:
-            kill_external_controller(argv[1])
         app = QtWidgets.QApplication(argv)
+        screen_width, screen_height, center_point = get_screen_infomation()
         mifare_reader = MFRC522libExtension()
         keypad = KeyPadDriver()
         system = SystemModel()
@@ -1427,9 +1500,14 @@ if __name__ == '__main__':
         locker_return = LockerReturnModel()
         inquire = Inquire()
         help = Help()
+        card_management = CardManagementController()
         card_initialization = CardInitializationModel()
-        card_reset = CardResetModel()
+        card_reset = CardReset()
         card_dump = CardDump()
+        balance = BalanceModel()
+        database_management = DatabaseManagementController()
+        print_database = PrintDatabaseModel()
+        reset_database = ResetDatabaseModel()
         exit_program = ExitProgramModel()
         system.show()
         exit(app.exec_())

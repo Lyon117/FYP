@@ -82,14 +82,13 @@ def HistoryRecordUpdateReturn(cursor, database, student_id, locker_id, borrow_ti
 
 
 @__AdminLogin('LOCKER_SYSTEM')
-def UserRegistrationSearchAll(cursor, database):
-    cursor.execute("SELECT * FROM USER_REGISTRATION")
+def PrintAllRecord(cursor, database, table):
+    cursor.execute(f'SELECT * FROM {table}')
     result = cursor.fetchall()
     return result
 
 
 @__AdminLogin('LOCKER_SYSTEM')
-def HistoryRecordSearchAll(cursor, database):
-    cursor.execute("SELECT * FROM HISTORY_RECORD")
-    result = cursor.fetchall()
-    return result
+def ResetTable(cursor, database, table):
+    cursor.execute(f'DROP TABLE {table}')
+    CheckTableExist()

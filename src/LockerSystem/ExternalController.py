@@ -10,14 +10,12 @@ SYSTEM_PATH = join(dirname(__file__), 'System.py')
 
 def restart_program(pid):
     kill(pid, 9)
-    pid = getpid()
-    subprocess = Popen(['python3', SYSTEM_PATH, f'{pid}'])
-    _ = subprocess.communicate()
+    Popen(['python3', SYSTEM_PATH])
 
 
 def power_off(pid):
     kill(pid, 9)
-    subprocess = Popen(['sudo', 'poweroff'])
+    Popen(['sudo', 'poweroff'])
 
 
 if __name__ == '__main__':
