@@ -36,6 +36,30 @@ if(isset($_SESSION["loggedin"]) != true) {
             </ul>
         </div>
     </nav>
+    <head>
+        <form method="post" action="usersregistration.php">
+            <input type="text" name="search_data" placeholder="Search for ......">
+            <select name="search_field">
+                <option value="">Select Filter</option>
+                <option value="STUDENT_ID">Student ID</option>
+                <option value="STUDENT_NAME">Student Name</option>
+                <option value="UID">UID</option>
+                <option value="REGISTRATION_TIME">Registeration Time</option>
+            </select>
+            <input type="submit" name="submit" value="Find">
+        </form>
+    </head>
+    <?php
+    if (isset($_POST['submit'])) {
+        $search_data = $conn -> real_escape_string ($_POST['search_data']);
+        $search_field = $conn -> real_escape_string ($_POST['search_field']);
+        if ($search_field == "") {
+            $search_field = "STUDENT_NAME";
+        }
+        $search_sql = "SELECT * FROM USER_REGISTRATION WHERE " . $search_field . " LIKE '%" . $search_data . "%'";
+        $result = mysqli_query($conn, $search_sql);
+    }
+    ?>
     <div class="container">
         <h2>Users Registration</h2>
         <table>
