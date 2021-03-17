@@ -286,29 +286,22 @@ class KeyPadDriver:
         self.LineEditObject = None
         self.ReadyInput = False
         self.PreviousCharacter = None
-        self.L1 = 29
-        self.L2 = 31
-        self.L3 = 33
-        self.L4 = 35
+        self.InvalidCharacter = None
+        self.R1 = 29
+        self.R2 = 31
+        self.R3 = 33
+        self.R4 = 35
         self.C1 = 32
         self.C2 = 36
         self.C3 = 38
         self.C4 = 40
-        GPIO.setup(self.L1, GPIO.OUT)
-        GPIO.setup(self.L2, GPIO.OUT)
-        GPIO.setup(self.L3, GPIO.OUT)
-        GPIO.setup(self.L4, GPIO.OUT)
-        GPIO.setup(self.C1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-        GPIO.setup(self.C2, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-        GPIO.setup(self.C3, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-        GPIO.setup(self.C4, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         
     def KeyPadScan(self):
         while self.ReadyInput:
-            self.ChooseCharacter(self.L1, ["1","2","3","A"])
-            self.ChooseCharacter(self.L2, ["4","5","6","B"])
-            self.ChooseCharacter(self.L3, ["7","8","9","C"])
-            self.ChooseCharacter(self.L4, ["*","0","#","D"])
+            self.ChooseCharacter(self.R1, ["1","2","3","BS"])
+            self.ChooseCharacter(self.R2, ["4","5","6",","])
+            self.ChooseCharacter(self.R3, ["7","8","9","-"])
+            self.ChooseCharacter(self.R4, ["","0","",""])
             sleep(0.1)
         
     def ChooseCharacter(self, line, characters):
@@ -324,24 +317,36 @@ class KeyPadDriver:
         GPIO.output(line, GPIO.LOW)
     
     def InputCharacter(self, character):
-        if self.PreviousCharacter != character:
+        if self.PreviousCharacter != character and not character in self.InvalidCharacter:
             current_text = self.LineEditObject.text()
             self.PreviousCharacter = character
-            if not character in ['A', 'B', 'C', 'D', '*', '#']:
-                new_text = current_text + character
-            else:
+            if character == 'BS':
                 new_text = current_text[:-1]
+            else:
+                new_text = current_text + character
             self.LineEditObject.setText(new_text)
         else:
             self.PreviousCharacter = None
 
-    def Connect(self, line_edit):
+    def Connect(self, line_edit, *invalid_character):
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setup(self.R1, GPIO.OUT)
+        GPIO.setup(self.R2, GPIO.OUT)
+        GPIO.setup(self.R3, GPIO.OUT)
+        GPIO.setup(self.R4, GPIO.OUT)
+        GPIO.setup(self.C1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(self.C2, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(self.C3, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(self.C4, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         self.LineEditObject = line_edit
         self.ReadyInput = True
+        self.InvalidCharacter = invalid_character
     
     def Disconnect(self):
+        GPIO.cleanup()
         self.LineEditObject = None
         self.ReadyInput = False
+        self.InvalidCharacter = None
 
 
 # System window
@@ -421,6 +426,9 @@ class SystemView(QtWidgets.QWidget):
         self.DatabaseManagementButton = QtWidgets.QPushButton('DatabaseManagement')
         self.DatabaseManagementButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         self.AdminFunctionLayout.addWidget(self.DatabaseManagementButton, 0, 1)
+        self.SystemManagementButton = QtWidgets.QPushButton('SystemManagement')
+        self.SystemManagementButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        self.AdminFunctionLayout.addWidget(self.SystemManagementButton, 1, 0)
         self.ExitButton = QtWidgets.QPushButton('Exit')
         self.ExitButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         self.AdminFunctionLayout.addWidget(self.ExitButton, 1, 1)
@@ -496,7 +504,8 @@ class SystemController(SystemView):
     def AdminFunctionConnection(self):
         self.CardManagementButton.clicked.connect(lambda: card_management.show())
         self.DatabaseManagementButton.clicked.connect(lambda: database_management.show())
-        self.ExitButton.clicked.connect(lambda: exit_program.show())
+        self.SystemManagementButton.clicked.connect(lambda: system_management.show())
+        self.ExitButton.clicked.connect(lambda: exit_system.show())
         self.UserGuiButton.clicked.connect(partial(self.ShowInterface, 0))
         
     def ShowInterface(self, interface_index):
@@ -532,16 +541,17 @@ class SystemController(SystemView):
                     break
     
     def LockerButtonConnection(self):
-        locker_total = self.SystemConfiguration['locker_row'] * self.SystemConfiguration['locker_column']
-        for i in range(locker_total):
-            exec(f'self.LockerButton{i}.clicked.connect(partial(self.LockerController, {i}))')
+        for index in self.SystemStatus.keys():
+            exec(f'self.LockerButton{index}.clicked.connect(partial(self.LockerController, {index}))')
     
-    def LockerController(self, locker_index):
-        locker_index = str(locker_index)
-        if self.SystemStatus[locker_index]['availability'] == 1:
-            locker_borrow.GetLockerIndex(locker_index)
-        elif self.SystemStatus[locker_index]['availability'] == 0:
-            locker_return.GetLockerIndex(locker_index)
+    def LockerController(self, index):
+        index = str(index)
+        if self.SystemStatus[index]['availability'] == 0 or self.SystemStatus[index]['availability'] == 3:
+            locker_return.GetLockerIndex(index)
+        elif self.SystemStatus[index]['availability'] == 1:
+            locker_borrow.GetLockerIndex(index)
+        elif self.SystemStatus[index]['availability'] == 2:
+            locker_maintenance.show()
     
     def SetUILanguage(self, index):
         if index == 0:
@@ -550,11 +560,16 @@ class SystemController(SystemView):
             set_ui_language('Chinese')
         
     def LockerStatusRefresh(self):
-        for locker in self.SystemStatus.keys():
-            if self.SystemStatus[locker]['availability'] == 1:
-                exec(f'self.LockerButton{locker}.setStyleSheet("background-color: green; border: none; font-size: 36px; font-family: Calibri")')
-            else:
-                exec(f'self.LockerButton{locker}.setStyleSheet("background-color: red; border: none; font-size: 36px; font-family: Calibri")')
+        for index in self.SystemStatus.keys():
+            if self.SystemStatus[index]['availability'] == 0 or self.SystemStatus[index]['availability'] == 3:
+                exec(f'self.LockerButton{index}.setStyleSheet("background-color: #B95754; border: none; font-size: 36px; font-family: Calibri")')
+            elif self.SystemStatus[index]['availability'] == 1:
+                exec(f'self.LockerButton{index}.setStyleSheet("background-color: #6B9362; border: none; font-size: 36px; font-family: Calibri")')
+            elif self.SystemStatus[index]['availability'] == 2:
+                exec(f'self.LockerButton{index}.setStyleSheet("background-color: #FFA400; border: none; font-size: 36px; font-family: Calibri")')
+        updated_status = dumps(self.SystemStatus)
+        with open(SYSTEM_STATUS_FILE_PATH, 'w') as system_status_file:
+            system_status_file.write(updated_status)
 
 
 class SystemModel(SystemController):
@@ -597,7 +612,7 @@ class SystemModel(SystemController):
 class TapCardView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        set_widget_setting(self, 4, 'Calibri', 12, 'TapCard')
+        set_widget_setting(self, 2, 'Calibri', 24, 'TapCard')
         # Translation
         self.TapCardPrompt = {'English': 'Please tap your card', 'Chinese': '請拍卡'}
         self.CancelButtonText = {'English': 'Cancel', 'Chinese': '取消'}
@@ -632,7 +647,7 @@ class TapCardController(TapCardView):
 class DisplayView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        set_widget_setting(self, 2, 'Consolas', 12, 'Display')
+        set_widget_setting(self, 1, 'Consolas', 24, 'Display')
         # Translation
         self.CancelButtonText = {'English': 'Cancel', 'Chinese': '取消'}
         # Interface setup
@@ -693,7 +708,7 @@ class WarningMessageBox(QtWidgets.QMessageBox):
 class LockerBorrowView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        set_widget_setting(self, 4, 'Calibri', 12, 'LockerBorrow')
+        set_widget_setting(self, 2, 'Calibri', 24, 'LockerBorrow')
         # Translation
         self.BorrowMessageLabel_2Prompt = {'English': 'Please put all the things you want into locker \nand close the door properly \nbefore you click the confirm button.', 'Chinese': '請將您的東西全部放進儲物櫃，\n並正確關閉櫃門，\n然後再點擊確認按鈕。'}
         self.CancelButtonText = {'English': 'Cancel', 'Chinese': '取消'}
@@ -702,14 +717,18 @@ class LockerBorrowView(QtWidgets.QWidget):
         self.MainLayout = QtWidgets.QGridLayout()
         self.BorrowMessageLabel_1 = QtWidgets.QLabel()
         self.BorrowMessageLabel_1.setAlignment(QtCore.Qt.AlignCenter)
+        self.MainLayout.addWidget(self.BorrowMessageLabel_1, 0, 0, 1, 3)
         self.BorrowMessageLabel_2 = QtWidgets.QLabel(self.BorrowMessageLabel_2Prompt[self.Language])
         self.BorrowMessageLabel_2.setAlignment(QtCore.Qt.AlignCenter)
-        self.MainLayout.addWidget(self.BorrowMessageLabel_1, 0, 0, 1, 3)
         self.MainLayout.addWidget(self.BorrowMessageLabel_2, 1, 0, 1, 3)
         self.CancelButton = QtWidgets.QPushButton(self.CancelButtonText[self.Language])
+        self.CancelButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         self.MainLayout.addWidget(self.CancelButton, 2, 0)
         self.ConfirmButton = QtWidgets.QPushButton(self.ConfirmButtonText[self.Language])
+        self.ConfirmButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         self.MainLayout.addWidget(self.ConfirmButton, 2, 2)
+        for i in range(3):
+            self.MainLayout.setColumnStretch(i, 1)
         self.setLayout(self.MainLayout)
     
     def SetLanguage(self, language):
@@ -792,9 +811,6 @@ class LockerBorrowModel(LockerBorrowController):
             system.SystemStatus[self.LockerIndex]['student_id'] = student_id
             system.SystemStatus[self.LockerIndex]['start_time'] = self.StartTime
             system.SystemStatus[self.LockerIndex]['usage_count'] += 1
-            updated_status = dumps(system.SystemStatus)
-            with open(SYSTEM_STATUS_FILE_PATH, 'w') as system_status_file:
-                system_status_file.write(updated_status)
             time_string = Converter.TimeString(self.StartTime)
             system.SystemLogWrite(f'{time_string} Borrow - Locker {self.LockerIndex} was borrowed by {student_id} {student_name}')
             system.LockerStatusRefresh()
@@ -804,7 +820,7 @@ class LockerBorrowModel(LockerBorrowController):
 class LockerReturnView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        set_widget_setting(self, 4, 'Calibri', 12, 'LockerReturn')
+        set_widget_setting(self, 2, 'Calibri', 24, 'LockerReturn')
         # Translation
         self.ReturnMessageLabel_2Prompt = {'English': 'Are you comfirm to return?', 'Chinese': '您確定要歸還嗎?'}
         self.CancelButtonText = {'English': 'Cancel', 'Chinese': '取消'}
@@ -813,9 +829,9 @@ class LockerReturnView(QtWidgets.QWidget):
         self.MainLayout = QtWidgets.QGridLayout()
         self.ReturnMessageLabel_1 = QtWidgets.QLabel()
         self.ReturnMessageLabel_1.setAlignment(QtCore.Qt.AlignCenter)
+        self.MainLayout.addWidget(self.ReturnMessageLabel_1, 0, 0, 1, 3)
         self.ReturnMessageLabel_2 = QtWidgets.QLabel('Are you comfirm to return?')
         self.ReturnMessageLabel_2.setAlignment(QtCore.Qt.AlignCenter)
-        self.MainLayout.addWidget(self.ReturnMessageLabel_1, 0, 0, 1, 3)
         self.MainLayout.addWidget(self.ReturnMessageLabel_2, 1, 0, 1, 3)
         self.CancelButton = QtWidgets.QPushButton('Cancel')
         self.MainLayout.addWidget(self.CancelButton, 2, 0)
@@ -883,21 +899,47 @@ class LockerReturnModel(LockerReturnController):
     def StatusUpate(self):
         tap_card.close()
         if mifare_reader.InterruptSignal == False:
+            availability = system.SystemStatus[self.LockerIndex]['availability']
             student_name = system.SystemStatus[self.LockerIndex]['student_name']
             student_id = system.SystemStatus[self.LockerIndex]['student_id']
             borrow_time = system.SystemStatus[self.LockerIndex]['start_time']
-            system.SystemStatus[self.LockerIndex]['availability'] = 1
+            system.SystemStatus[self.LockerIndex]['availability'] = 1 if availability != 3 else 2
             system.SystemStatus[self.LockerIndex]['student_name'] = None
             system.SystemStatus[self.LockerIndex]['student_id'] = None
             system.SystemStatus[self.LockerIndex]['start_time'] = None
-            updated_status = dumps(system.SystemStatus)
-            with open(SYSTEM_STATUS_FILE_PATH, 'w') as system_status_file:
-                system_status_file.write(updated_status)
             borrow_time_string = Converter.TimeString(borrow_time)
             return_time_string = Converter.TimeString(self.EndTime)
             system.SystemLogWrite(f'{return_time_string} Return - Locker {self.LockerIndex} was return by {student_id} {student_name}\n')
             system.LockerStatusRefresh()
             Database.HistoryRecordUpdateReturn(student_id, self.LockerIndex, borrow_time_string, return_time_string)
+
+
+class LockerMaintenanceView(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        set_widget_setting(self, 2, 'Calibri', 24, 'LockerMaintenance')
+        # Translation
+        self.LockerMaintenancePrompt = {'English': 'This locker is in maintenance.\nPlease choose another locker.', 'Chinese': '此儲物櫃正在維護中\n請選擇另一個儲物櫃'}
+        self.CancelButtonText = {'English': 'Cancel', 'Chinese': '取消'}
+        # Interface setup
+        self.MainLayout = QtWidgets.QGridLayout(self)
+        self.Label = QtWidgets.QLabel(self.LockerMaintenancePrompt[self.Language])
+        self.Label.setAlignment(QtCore.Qt.AlignCenter)
+        self.MainLayout.addWidget(self.Label, 0, 0, 1, 3)
+        self.CancelButton = QtWidgets.QPushButton(self.CancelButtonText[self.Language])
+        self.MainLayout.addWidget(self.CancelButton, 2, 1)
+        self.setLayout(self.MainLayout)
+    
+    def SetLanguage(self, language):
+        self.Language = language
+        self.Label.setText(self.LockerMaintenancePrompt[self.Language])
+        self.CancelButton.setText(self.CancelButtonText[self.Language])
+
+
+class LockerMaintenanceController(LockerMaintenanceView):
+    def __init__(self):
+        super().__init__()
+        self.CancelButton.clicked.connect(self.close)
 
 
 class Inquire(QtCore.QObject):
@@ -1262,6 +1304,10 @@ class BalanceController(BalanceView):
     def __init__(self):
         super().__init__()
         self.CancelButton.clicked.connect(self.close)
+    
+    def closeEvent(self, event):
+        self.BalanceLineEdit.clear()
+        keypad.Disconnect()
 
 
 class BalanceModel(BalanceController):
@@ -1273,10 +1319,6 @@ class BalanceModel(BalanceController):
         self.Thread = Threading(keypad.KeyPadScan)
         self.Thread.started.connect(self.show)
         self.Thread.start()
-    
-    def closeEvent(self, event):
-        self.BalanceLineEdit.clear()
-        keypad.Disconnect()
 
 
 # Database related
@@ -1394,18 +1436,151 @@ class ResetDatabaseModel(ResetDatabaseController):
         database_management.show()
     
 
-class ExitProgramView(QtWidgets.QWidget):
+class SystemManagementView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        set_widget_setting(self, 4, 'Calibri', 12, 'ExitProgram')
+        set_widget_setting(self, 4, 'Calibri', 12, 'DatabaseManagaement')
         # Interface layout setup
         self.MainLayout = QtWidgets.QGridLayout()
-        self.ExitProgramButton = QtWidgets.QPushButton('ExitProgram')
-        self.ExitProgramButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        self.MainLayout.addWidget(self.ExitProgramButton, 0, 0, 5, 3)
-        self.RestartProgramButton = QtWidgets.QPushButton('RestartProgram')
-        self.RestartProgramButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
-        self.MainLayout.addWidget(self.RestartProgramButton, 5, 0, 5, 3)
+        self.SetMaintenanceButton = QtWidgets.QPushButton('SetMaintenance')
+        self.SetMaintenanceButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        self.MainLayout.addWidget(self.SetMaintenanceButton, 0, 0, 8, 3)
+        self.ResetMaintenanceButton = QtWidgets.QPushButton('ResetMaintenance')
+        self.ResetMaintenanceButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        self.MainLayout.addWidget(self.ResetMaintenanceButton, 8, 0, 8, 3)
+        self.CancelButton = QtWidgets.QPushButton('Cancel')
+        self.MainLayout.addWidget(self.CancelButton, 17, 1, 2, 1)
+        self.setLayout(self.MainLayout)
+
+
+class SystemManagementController(SystemManagementView):
+    def __init__(self):
+        super().__init__()
+        self.SetMaintenanceButton.clicked.connect(partial(self.SetMaintenance, 0))
+        self.ResetMaintenanceButton.clicked.connect(partial(self.SetMaintenance, 1))
+        self.CancelButton.clicked.connect(self.close)
+    
+    def SetMaintenance(self, mode):
+        maintenance.SetMode(mode)
+        self.close()
+        maintenance.show()
+        maintenance.Execute()
+
+
+class MaintenceView(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        set_widget_setting(self, 2, 'Calibri', 12, 'Maintenance')
+        # Interface layout setup
+        self.MainLayout = QtWidgets.QGridLayout()
+        self.PromptLabel = QtWidgets.QLabel()
+        self.PromptLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.MainLayout.addWidget(self.PromptLabel, 0, 0, 1, 3)
+        self.InputLineEdit = QtWidgets.QLineEdit()
+        self.InputLineEdit.setReadOnly(True)
+        self.MainLayout.addWidget(self.InputLineEdit, 1, 0, 1, 3)
+        self.CancelButton = QtWidgets.QPushButton('Cancel')
+        self.MainLayout.addWidget(self.CancelButton, 4, 0)
+        self.MainLayout.addWidget(QtWidgets.QLabel(), 4, 1)
+        self.ComfirmButton = QtWidgets.QPushButton('Comfirm')
+        self.ComfirmButton.setEnabled(False)
+        self.MainLayout.addWidget(self.ComfirmButton, 4, 2)
+        self.setLayout(self.MainLayout)
+        self.Prompt = {0: 'Please input the locker index that you want to reserve to do maintenance', 1: 'Please input the locker index that you want to be available'}
+
+
+class MaintenanceController(MaintenceView):
+    OkSignal = QtCore.pyqtSignal(bool)
+    def __init__(self):
+        super().__init__()
+        self.CancelButton.clicked.connect(self.close)
+        self.ComfirmButton.clicked.connect(self.MaintenancePreparation)
+        self.InputLineEdit.textChanged.connect(self.MaintenanceValidate)
+        self.OkSignal.connect(self.InputOk)
+
+    def SetMode(self, mode):
+        self.Mode = mode
+        self.PromptLabel.setText(self.Prompt[mode])
+    
+    def MaintenanceValidate(self, text):
+        self.OkSignal.emit(False)
+        pattern = QtCore.QRegExp('^(0|[1-9]\d*)(\-[1-9]\d*)?(,(0|[1-9]\d*)(\-[1-9]\d*)?)*$')
+        validator = QtGui.QRegExpValidator(pattern)
+        if validator.validate(text, 0)[0] == 2:
+            self.OkSignal.emit(True)
+    
+    def InputOk(self, value):
+        self.ComfirmButton.setEnabled(value)
+    
+    def closeEvent(self, event):
+        self.InputLineEdit.clear()
+        keypad.Disconnect()
+        event.accept()
+
+
+class MaintenanceModel(MaintenanceController):
+    def __init__(self):
+        super().__init__()
+    
+    def Execute(self):
+        keypad.Connect(self.InputLineEdit)
+        self.Thread = Threading(keypad.KeyPadScan)
+        self.Thread.started.connect(self.show)
+        self.Thread.start()
+    
+    def closeEvent(self, event):
+        self.InputLineEdit.clear()
+        keypad.Disconnect()
+    
+    def InputStringAnalyzer(self, input_string):
+        result = []
+        input_string_list = input_string.split(',')
+        for string in input_string_list:
+            if '-' in string:
+                end, start= string.split('-')
+                temp = [str(i) for i in range(int(start), int(end) + 1)]
+                result += temp
+            else:
+                result.append(string)
+        result = list(set(result))
+        result.sort()
+        return result
+    
+    def MaintenancePreparation(self):
+        input_text = self.InputLineEdit.text()
+        result = self.InputStringAnalyzer(input_text)
+        max_index = list(system.SystemStatus.keys())[-1]
+        result = [i for i in result if int(i) <= int(max_index)]
+        current_time = int(time())
+        time_string = Converter.TimeString(current_time)
+        if self.Mode == 0:
+            for index in result:
+                locker_current_availability = system.SystemStatus[index]['availability']
+                if locker_current_availability == 0:
+                    system.SystemStatus[index]['availability'] = 3
+                else:
+                    system.SystemStatus[index]['availability'] = 2
+                system.SystemLogWrite(f'{time_string} Start Maintenance - Locker {index}')
+        elif self.Mode == 1:
+            for index in result:
+                system.SystemStatus[index]['availability'] = 1
+                system.SystemLogWrite(f'{time_string} Finitsh Maintenance - Locker {index}')
+        system.LockerStatusRefresh()
+        self.close()
+
+
+class ExitSystemView(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        set_widget_setting(self, 4, 'Calibri', 12, 'Exit')
+        # Interface layout setup
+        self.MainLayout = QtWidgets.QGridLayout()
+        self.ExitSystemButton = QtWidgets.QPushButton('ExitSystem')
+        self.ExitSystemButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        self.MainLayout.addWidget(self.ExitSystemButton, 0, 0, 5, 3)
+        self.RestartSystemButton = QtWidgets.QPushButton('RestartSystem')
+        self.RestartSystemButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        self.MainLayout.addWidget(self.RestartSystemButton, 5, 0, 5, 3)
         self.PowerOffButton = QtWidgets.QPushButton('PowerOff')
         self.PowerOffButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         self.MainLayout.addWidget(self.PowerOffButton, 10, 0, 5, 3)
@@ -1414,16 +1589,16 @@ class ExitProgramView(QtWidgets.QWidget):
         self.setLayout(self.MainLayout)
 
 
-class ExitProgramController(ExitProgramView):
+class ExitSystemController(ExitSystemView):
     def __init__(self):
         super().__init__()
-        self.ExitProgramButton.clicked.connect(partial(self.ActionConfirm, 'ExitProgram'))
-        self.RestartProgramButton.clicked.connect(partial(self.ActionConfirm, 'RestartProgram'))
+        self.ExitSystemButton.clicked.connect(partial(self.ActionConfirm, 'ExitSystem'))
+        self.RestartSystemButton.clicked.connect(partial(self.ActionConfirm, 'RestartSystem'))
         self.PowerOffButton.clicked.connect(partial(self.ActionConfirm, 'PowerOff'))
         self.CancelButton.clicked.connect(self.close)
 
 
-class ExitProgramModel(ExitProgramController):
+class ExitSystemModel(ExitSystemController):
     def __init__(self):
         super().__init__()
         self.PID = getpid()
@@ -1431,20 +1606,23 @@ class ExitProgramModel(ExitProgramController):
     def ActionConfirm(self, mode):
         self.close()
         warning_messagebox = WarningMessageBox(f'Are you sure to {mode}?')
-        if mode == 'ExitProgram':
-            warning_messagebox.AcceptAction(self.ExitProgram)
-        elif mode == 'RestartProgram':
-            warning_messagebox.AcceptAction(self.RestartProgram)
+        if mode == 'ExitSystem':
+            warning_messagebox.AcceptAction(self.ExitSystem)
+        elif mode == 'RestartSystem':
+            warning_messagebox.AcceptAction(self.RestartSystem)
         elif mode == 'PowerOff':
             warning_messagebox.AcceptAction(self.PowerOff)
 
-    def ExitProgram(self):
+    def ExitSystem(self):
+        GPIO.cleanup()
         exit(0)
 
-    def RestartProgram(self):
+    def RestartSystem(self):
+        GPIO.cleanup()
         Popen(['python3', EXTERNAL_CONTROLLER_PATH, f'{self.PID}', 'Restart'])
 
     def PowerOff(self):
+        GPIO.cleanup()
         Popen(['python3', EXTERNAL_CONTROLLER_PATH, f'{self.PID}', 'PowerOff'])
 
 
@@ -1483,6 +1661,7 @@ def set_ui_language(language):
     display.SetLanguage(language)
     locker_borrow.SetLanguage(language)
     locker_return.SetLanguage(language)
+    locker_maintenance.SetLanguage(language)
     help.SetLanguage(language)
 
 
@@ -1498,6 +1677,7 @@ if __name__ == '__main__':
         display = DisplayController()
         locker_borrow = LockerBorrowModel()
         locker_return = LockerReturnModel()
+        locker_maintenance = LockerMaintenanceController()
         inquire = Inquire()
         help = Help()
         card_management = CardManagementController()
@@ -1508,7 +1688,9 @@ if __name__ == '__main__':
         database_management = DatabaseManagementController()
         print_database = PrintDatabaseModel()
         reset_database = ResetDatabaseModel()
-        exit_program = ExitProgramModel()
+        system_management = SystemManagementController()
+        maintenance = MaintenanceModel()
+        exit_system = ExitSystemModel()
         system.show()
         exit(app.exec_())
     else:
