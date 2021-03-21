@@ -19,50 +19,79 @@ SYSTEM_CONFIGURATION_FILE_PATH = join(dirname(__file__), 'Config.json')
 SYSTEM_STATUS_FILE_PATH = join(dirname(__file__), 'Status.json')
 SYSTEM_LOG_FILE_PATH = join(dirname(__file__), 'Log.log')
 EXTERNAL_CONTROLLER_PATH = join(dirname(__file__), 'ExternalController.py')
-HELP_TEXT_EN = '''Welcome to use this locker system.
-Here is the user guide:
-Each number button corresponding to the locker with the same index,
-different colour show different locker status, which:
-Green  - Ready to be borrowed
-Red    - Has been borrowed
-Yellow - Under maintenance
 
-If you select the button with these colour, the action of system will be:
-Green  - Borrow this locker
-Red    - Return this locker
-Yellow - Pop an error message
 
-If you select the those function botton at the same row of this help button, the action of system will be:
-Borrow  - The system will borrow the locker for you automatically
-Return  - The system will return the longest locker you have borrowed automatically
-Inquire - You can tap your card and the system will display your information and the recent history record
+def get_system_configuration():
+        with open(SYSTEM_CONFIGURATION_FILE_PATH, 'r', encoding='utf-8') as system_configuration_file:
+            system_configuration_data = system_configuration_file.read()
+            system_configuration_data = loads(system_configuration_data)
+        return system_configuration_data
 
-You can select the UI language you like in the pull down menu
-The information bar at the bottom shows the name, index, welcome message of this system and the current time
 
-This system was implemented by TAM Kai Fung, NG Wing Huen and LO Lok Yin'''
-HELP_TEXT_TC = '''歡迎使用本儲物櫃系統
-以下是用户指引：
-每個數字按鈕對應相同索引的儲物櫃
-不同的顏色顯示不同的儲物櫃狀態，其中：
-綠色 - 可以借出
-紅色 - 已被借用
-黃色 - 維護中
+system_configuration = get_system_configuration()
 
-如果你選擇了這些按鈕的儲物櫃，系統將會
-綠色 - 借用這個櫃子
-紅色 - 退回這個櫃子
-黃色 - 彈出一個錯誤信息
 
-如果你選擇了與此幫助按鈕的同一行的功能鍵，系統將會
-借用 - 系統會自動幫你借用儲物櫃
-歸還 - 系統會自動歸還你所借的最長時間的儲物櫃
-查詢 - 你可以拍你的卡，系統會顯示你的信息和最近的歷史記錄
+class Translation:
+    HoldCard = {'English': 'Please hold your card until this window is close', 'Chinese': '請保持拍卡直至此視窗關閉'}
+    TapCardAgain = {'English': 'Please tap your card again', 'Chinese': '請再次拍卡'}
+    NotBorrower = {'English': 'The card holder does not is a borrower of this locker', 'Chinese': '此儲物櫃並不屬於持卡人'}
+    NoBorrow = {'English': 'The card holder does not borrow any locker', 'Chinese': '持卡人沒有租借任何儲物櫃'}
+    Borrow = {'English': 'Borrow', 'Chinese': '借用'}
+    Return = {'English': 'Return', 'Chinese': '歸還'}
+    Inquire = {'English': 'Inquire', 'Chinese': '查詢'}
+    Help = {'English': 'Help', 'Chinese': '幫助'}
+    SystemGreeting = {'English': system_configuration['system_greeting_en'], 'Chinese': system_configuration['system_greeting_tc']}
+    TapCard = {'English': 'Please tap your card', 'Chinese': '請拍卡'}
+    Cancel = {'English': 'Cancel', 'Chinese': '取消'}
+    Confirm = {'English': 'Comfirm', 'Chinese': '確認'}
+    SelectMessage = {'English': 'You have selected locker', 'Chinese': '您選擇了儲物櫃'}
+    BorrowHint = {'English': 'Please put all the things you want into locker \nand close the door properly \nbefore you click the confirm button.', 'Chinese': '請將您的東西全部放進儲物櫃，\n並正確關閉櫃門，\n然後再點擊確認按鈕。'}
+    ReturnHint = {'English': 'Are you comfirm to return?', 'Chinese': '您確定要歸還嗎?'}
+    MaintenanceHint = {'English': 'This locker is in maintenance.\nPlease choose another locker.', 'Chinese': '此儲物櫃正在維護中\n請選擇另一個儲物櫃'}
+    UserHelp = {'English':'''    Welcome to use this locker system.
+    Here is the user guide:
+    Each number button corresponding to the locker with the same index,
+    different colour show different locker status, which:
+    Green  - Ready to be borrowed
+    Red    - Has been borrowed
+    Yellow - Under maintenance
 
-你可以在下拉菜單中選擇你喜歡的介面語言
-底部的信息欄顯示了本系統的名稱、索引、歡迎詞和當前時間
+    If you select the button with these colour, the action of system will be:
+    Green  - Borrow this locker
+    Red    - Return this locker
+    Yellow - Pop an error message
 
-此系統由 TAM Kai Fung, NG Wing Huen 和 LO Lok Yin 實現'''
+    If you select the those function botton at the same row of this help button, the action of system will be:
+    Borrow  - The system will borrow the locker for you automatically
+    Return  - The system will return the longest locker you have borrowed automatically
+    Inquire - You can tap your card and the system will display your information and the recent history record
+
+    You can select the UI language you like in the pull down menu
+    The information bar at the bottom shows the name, index, welcome message of this system and the current time
+
+    This system was implemented by TAM Kai Fung, NG Wing Huen and LO Lok Yin''',
+                'Chinese': '''    歡迎使用本儲物櫃系統
+    以下是用户指引：
+    每個數字按鈕對應相同索引的儲物櫃
+    不同的顏色顯示不同的儲物櫃狀態，其中：
+    綠色 - 可以借出
+    紅色 - 已被借用
+    黃色 - 維護中
+
+    如果你選擇了這些按鈕的儲物櫃，系統將會
+    綠色 - 借用這個櫃子
+    紅色 - 退回這個櫃子
+    黃色 - 彈出一個錯誤信息
+
+    如果你選擇了與此幫助按鈕的同一行的功能鍵，系統將會
+    借用 - 系統會自動幫你借用儲物櫃
+    歸還 - 系統會自動歸還你所借的最長時間的儲物櫃
+    查詢 - 你可以拍你的卡，系統會顯示你的信息和最近的歷史記錄
+
+    你可以在下拉菜單中選擇你喜歡的介面語言
+    底部的信息欄顯示了本系統的名稱、索引、歡迎詞和當前時間
+
+    此系統由 TAM Kai Fung, NG Wing Huen 和 LO Lok Yin 實現'''}
 
 
 class MFRC522libExtension(MFRC522lib.MFRC522lib):
@@ -71,14 +100,12 @@ class MFRC522libExtension(MFRC522lib.MFRC522lib):
     
     class UnmatchError(BaseException): pass
 
+    class NotFindError(BaseException): pass
+
     def __init__(self):
         super().__init__()
         self.Language = 'English'
-        # Translation
-        self.HoldCardPrompt = {'English': 'Please hold your card until this window is close', 'Chinese': '請保持拍卡直至此視窗關閉'}
-        self.TapCardAgainPrompt = {'English': 'Please tap your card again', 'Chinese': '請再次拍卡'}
-        self.CardHolderNotBorrowerPrompt = {'English': 'The card holder does not is a borrower of this locker', 'Chinese': '此儲物櫃並不屬於持卡人'}
-
+        
     def ChecksumAuth(self, uid):
         data = self.GetKey(uid)
         if Converter.GetChecksum(data[:4]) != data[4] or Converter.GetChecksum(data[:5]) != data[5]:
@@ -98,7 +125,7 @@ class MFRC522libExtension(MFRC522lib.MFRC522lib):
                 status = self.MFRC522_Request()
                 if status == self.OK:
                     try:
-                        tap_card.HintLabel.setText(self.HoldCardPrompt[self.Language])
+                        tap_card.HintLabel.setText(Translation.HoldCard[self.Language])
                         uid = self.MFRC522_Anticoll()
                         self.MFRC522_SelectTag(uid)
                         self.ChecksumAuth(uid)
@@ -111,10 +138,13 @@ class MFRC522libExtension(MFRC522lib.MFRC522lib):
                         GPIO.cleanup()
                         break
                     except (self.AuthenticationError, self.CommunicationError, self.IntegrityError):
-                        tap_card.HintLabel.setText(self.TapCardAgainPrompt[self.Language])
+                        tap_card.HintLabel.setText(Translation.TapCardAgain[self.Language])
                         self.MFRC522_StopCrypto1()
                     except (self.UnmatchError):
-                        tap_card.HintLabel.setText(self.CardHolderNotBorrowerPrompt[self.Language])
+                        tap_card.HintLabel.setText(Translation.NotBorrower[self.Language])
+                        self.MFRC522_StopCrypto1()
+                    except (self.NotFindError):
+                        tap_card.HintLabel.setText(Translation.NoBorrow[self.Language])
                         self.MFRC522_StopCrypto1()
                 sleep(0.1)
             return result
@@ -134,20 +164,19 @@ class CurrentTime(QtCore.QThread):
 
     def run(self):
         while True:
-            current_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
-            self.time_trigger.emit(current_time)
+            current_time_string = strftime("%Y-%m-%d %H:%M:%S", localtime())
+            self.time_trigger.emit(current_time_string)
             sleep(1)
 
 
 class RollSystemGreeting(QtCore.QThread):
     trigger = QtCore.pyqtSignal(str)
-    def __init__(self, system_greeting):
+    def __init__(self):
         super().__init__()
-        self.string_to_roll_string(system_greeting)
 
-    def string_to_roll_string(self, system_greeting):
-        new_system_greeting = f'{" " * ((60 - len(system_greeting)) // 2)}{system_greeting}{" " * ((60 - len(system_greeting)) // 2)}'
-        self.system_greeting_list = [x for x in new_system_greeting]
+    def Set(self, system_greeting):
+        system_greeting = f'{" " * ((60 - len(system_greeting)) // 2)}{system_greeting}{" " * ((60 - len(system_greeting)) // 2)}'
+        self.system_greeting_list = [char for char in system_greeting]
     
     def run(self):
         while True:
@@ -222,10 +251,11 @@ class Converter:
         if type(history_data) == list and len(history_data) == 3:
             locker_data = history_data[0] + history_data[1]
             locker_name = Converter.SystemName(locker_data[:30])
-            locker_no = Converter.LockerIndex(locker_data[30:])
-            start_time = Converter.Time(history_data[2][:8])
-            end_time = Converter.Time(history_data[2][8:])
-            history_record_list = [locker_name, locker_no, start_time, end_time]
+            locker_no = str(Converter.LockerIndex(locker_data[30:]))
+            borrow_time_string = Converter.TimeString((Converter.Time(history_data[2][:8])))
+            return_time = Converter.Time(history_data[2][8:])
+            return_time_string =  Converter.TimeString(return_time) if return_time != 0 else 'Not return yet'
+            history_record_list = [locker_name, locker_no, borrow_time_string, return_time_string]
             return history_record_list
         else:
             raise TypeError('Input value should be a list with length 3')
@@ -279,6 +309,25 @@ class Converter:
     def GetChecksum(byte_list: list) -> int:
         checksum = sum([byte_list[i] * -i for i in range(-len(byte_list), 0)]) % 251
         return checksum
+
+    @staticmethod
+    def TableView(header_list: list, information_list: list) -> str:
+        information_length = list({len(information) for information in information_list})
+        if len(information_length) == 1:
+            if len(header_list) == information_length[0]:
+                whole_list = [header_list] + information_list
+                column_length_list = [max([len(str(row_data[i])) for row_data in whole_list]) for i in range(information_length[0])]
+                first_row = ''.join([f'+{"-" * (column_length + 2)}' for column_length in column_length_list] + ['+'])
+                second_row = ''.join([f'| {header_name}{" " * (column_length_list[i] - len(header_name) + 1)}' for i, header_name in enumerate(header_list)] + ['|'])
+                third_row = last_row = str(first_row)
+                information_row = [''.join([f'| {str(data)}{" " * (column_length_list[i] - len(str(data)) + 1)}' for i, data in enumerate(record)] + ['|']) for record in information_list]
+                information_string = '\n'.join(information_row)
+                result = '\n'.join([first_row, second_row, third_row, information_string, last_row])
+                return result
+            else:
+                return 'No Data Found'
+        else:
+            return 'Invalid Input'
 
 
 class KeyPadDriver:
@@ -349,6 +398,180 @@ class KeyPadDriver:
         self.InvalidCharacter = None
 
 
+class VirtualNumberPadView(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setFixedSize(screen_width // 5.3333, screen_height // 3)
+        # Set font property
+        font = QtGui.QFont()
+        font.setFamily('Calibri')
+        font.setPointSize(18)
+        self.setFont(font)
+        # Set widget property
+        self.setWindowFlag(QtCore.Qt.CustomizeWindowHint)
+        self.setWindowFlag(QtCore.Qt.WindowCloseButtonHint)
+        self.setWindowModality(QtCore.Qt.ApplicationModal)
+        self.setWindowTitle('VirtualNumPad')
+        self.KeyToButtonName = {'0': 'Key0Button', '1': 'Key1Button', '2': 'Key2Button', '3': 'Key3Button', '4': 'Key4Button',\
+                                '5': 'Key5Button', '6': 'Key6Button', '7': 'Key7Button', '8': 'Key8Button', '9': 'Key9Button',\
+                                '⌫': 'BackSpaceButton', ',': 'CommaButton', '-': 'HyphenButton'}
+        # Interface layout setup
+        self.MainLayout = QtWidgets.QGridLayout()
+        for key in list(self.KeyToButtonName.keys()):
+            exec(f'self.{self.KeyToButtonName[key]} = QtWidgets.QPushButton("{key}")')
+            exec(f'self.{self.KeyToButtonName[key]}.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)')
+        self.MainLayout.addWidget(self.Key7Button, 0, 0)
+        self.MainLayout.addWidget(self.Key8Button, 0, 1)
+        self.MainLayout.addWidget(self.Key9Button, 0, 2)
+        self.MainLayout.addWidget(self.BackSpaceButton, 0, 3)
+        self.MainLayout.addWidget(self.Key4Button, 1, 0)
+        self.MainLayout.addWidget(self.Key5Button, 1, 1)
+        self.MainLayout.addWidget(self.Key6Button, 1, 2)
+        self.MainLayout.addWidget(self.CommaButton, 1, 3)
+        self.MainLayout.addWidget(self.Key1Button, 2, 0)
+        self.MainLayout.addWidget(self.Key2Button, 2, 1)
+        self.MainLayout.addWidget(self.Key3Button, 2, 2)
+        self.MainLayout.addWidget(self.HyphenButton, 2, 3)
+        self.MainLayout.addWidget(self.Key0Button, 3, 1)
+        self.setLayout(self.MainLayout)
+
+
+class VirtualNumberPadController(VirtualNumberPadView):
+    def __init__(self):
+        super().__init__()
+        for key in list(self.KeyToButtonName.keys()):
+            exec(f'self.{self.KeyToButtonName[key]}.clicked.connect(partial(self.InsertText, "{key}"))')
+    
+    def Connect(self, line_edit, *invalid_character):
+        self.LineEditObject = line_edit
+        for character in invalid_character:
+            exec(f'self.{self.KeyToButtonName[character]}.setEnabled(False)')
+        self.show()
+    
+    def closeEvent(self, event):
+        self.LineEditObject = None
+        for button in list(self.KeyToButtonName.values()):
+            exec(f'self.{button}.setEnabled(True)')
+    
+    def InsertText(self, key):
+        if key != '⌫':
+            self.LineEditObject.insert(key)
+        else:
+            text = self.LineEditObject.text()
+            text = text[:-1]
+            self.LineEditObject.setText(text)
+
+
+class VirtualKeyBoardView(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setFixedSize(screen_width // 1.3714, screen_height // 2.25)
+        # Set font property
+        font = QtGui.QFont()
+        font.setFamily('Calibri')
+        font.setPointSize(18)
+        self.setFont(font)
+        # Set widget property
+        self.setWindowFlag(QtCore.Qt.CustomizeWindowHint)
+        self.setWindowFlag(QtCore.Qt.WindowCloseButtonHint)
+        self.setWindowModality(QtCore.Qt.ApplicationModal)
+        self.setWindowTitle('VirtualKeyBoard')
+        self.CurrentLetterCase = 'Upper' # Can be 'Upper' or 'Lower'
+        self.KeyToButtonName = {'A': 'KeyAButton', 'B': 'KeyBButton', 'C': 'KeyCButton', 'D': 'KeyDButton', 'E': 'KeyEButton',\
+                                'F': 'KeyFButton', 'G': 'KeyGButton', 'H': 'KeyHButton', 'I': 'KeyIButton', 'J': 'KeyJButton',\
+                                'K': 'KeyKButton', 'L': 'KeyLButton', 'M': 'KeyMButton', 'N': 'KeyNButton', 'O': 'KeyOButton',\
+                                'P': 'KeyPButton', 'Q': 'KeyQButton', 'R': 'KeyRButton', 'S': 'KeySButton', 'T': 'KeyTButton',\
+                                'U': 'KeyUButton', 'V': 'KeyVButton', 'W': 'KeyWButton', 'X': 'KeyXButton', 'Y': 'KeyYButton',\
+                                'Z': 'KeyZButton', '⌫': 'BackSpaceButton', '⇧': 'ShiftButton', ' ': 'SpaceButton'}
+        # Interface layout setup
+        self.MainLayout = QtWidgets.QGridLayout()
+        for key in list(self.KeyToButtonName.keys()):
+            exec(f'self.{self.KeyToButtonName[key]} = QtWidgets.QPushButton("{key}")')
+            exec(f'self.{self.KeyToButtonName[key]}.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)')
+        # First Row
+        self.MainLayout.addWidget(self.KeyQButton, 0, 2, 3, 3)
+        self.MainLayout.addWidget(self.KeyWButton, 0, 5, 3, 3)
+        self.MainLayout.addWidget(self.KeyEButton, 0, 8, 3, 3)
+        self.MainLayout.addWidget(self.KeyRButton, 0, 11, 3, 3)
+        self.MainLayout.addWidget(self.KeyTButton, 0, 14, 3, 3)
+        self.MainLayout.addWidget(self.KeyYButton, 0, 17, 3, 3)
+        self.MainLayout.addWidget(self.KeyUButton, 0, 20, 3, 3)
+        self.MainLayout.addWidget(self.KeyIButton, 0, 23, 3, 3)
+        self.MainLayout.addWidget(self.KeyOButton, 0, 26, 3, 3)
+        self.MainLayout.addWidget(self.KeyPButton, 0, 29, 3, 3)
+        self.MainLayout.addWidget(self.BackSpaceButton, 0, 32, 3, 3)
+        # Second Row
+        self.MainLayout.addWidget(self.KeyAButton, 3, 3, 3, 3)
+        self.MainLayout.addWidget(self.KeySButton, 3, 6, 3, 3)
+        self.MainLayout.addWidget(self.KeyDButton, 3, 9, 3, 3)
+        self.MainLayout.addWidget(self.KeyFButton, 3, 12, 3, 3)
+        self.MainLayout.addWidget(self.KeyGButton, 3, 15, 3, 3)
+        self.MainLayout.addWidget(self.KeyHButton, 3, 18, 3, 3)
+        self.MainLayout.addWidget(self.KeyJButton, 3, 21, 3, 3)
+        self.MainLayout.addWidget(self.KeyKButton, 3, 24, 3, 3)
+        self.MainLayout.addWidget(self.KeyLButton, 3, 27, 3, 3)
+        # Third Row
+        self.MainLayout.addWidget(self.ShiftButton, 6, 1, 3, 3)
+        self.MainLayout.addWidget(self.KeyZButton, 6, 4, 3, 3)
+        self.MainLayout.addWidget(self.KeyXButton, 6, 7, 3, 3)
+        self.MainLayout.addWidget(self.KeyCButton, 6, 10, 3, 3)
+        self.MainLayout.addWidget(self.KeyVButton, 6, 13, 3, 3)
+        self.MainLayout.addWidget(self.KeyBButton, 6, 16, 3, 3)
+        self.MainLayout.addWidget(self.KeyNButton, 6, 19, 3, 3)
+        self.MainLayout.addWidget(self.KeyMButton, 6, 22, 3, 3)
+        # Fourth Row
+        self.MainLayout.addWidget(self.SpaceButton, 9, 9, 3, 17)
+        self.setLayout(self.MainLayout)
+        
+
+class VirtualKeyBoardController(VirtualKeyBoardView):
+    def __init__(self):
+        super().__init__()
+        for key in list(self.KeyToButtonName.keys()):
+            exec(f'self.{self.KeyToButtonName[key]}.clicked.connect(partial(self.InsertText, "{key}"))')
+    
+    def Connect(self, line_edit):
+        self.LineEditObject = line_edit
+        self.show()
+    
+    def closeEvent(self, event):
+        self.LineEditObject = None
+    
+    def InsertText(self, key):
+        if key == '⌫':
+            text = self.LineEditObject.text()
+            text = text[:-1]
+            self.LineEditObject.setText(text)
+            if len(text) == 0 or text[-1] == ' ':
+                self.SetUpper()
+            elif text[-1].islower():
+                self.SetLower()
+        elif key == '⇧':
+            if self.CurrentLetterCase == 'Upper':
+                self.SetLower()
+            elif self.CurrentLetterCase == 'Lower':
+                self.SetUpper()
+        elif key == ' ':
+            self.LineEditObject.insert(' ')
+            self.SetUpper()
+        else:
+            if self.CurrentLetterCase == 'Lower':
+                key = key.lower()
+            self.LineEditObject.insert(key)
+            if self.CurrentLetterCase == 'Upper':
+                self.SetLower()
+    
+    def SetUpper(self):
+        self.CurrentLetterCase = 'Upper'
+        for key in list(self.KeyToButtonName.keys()):
+            exec(f'self.{self.KeyToButtonName[key]}.setText("{key}")')
+    
+    def SetLower(self):
+        self.CurrentLetterCase = 'Lower'
+        for key in list(self.KeyToButtonName.keys()):
+            exec(f'self.{self.KeyToButtonName[key]}.setText("{key.lower()}")')
+
+
 # System window
 class SystemView(QtWidgets.QWidget):
     def __init__(self):
@@ -361,16 +584,6 @@ class SystemView(QtWidgets.QWidget):
         self.AdminInterfaceSetup()
         self.CommonInterfaceSetup()
         self.setLayout(self.MainLayout)
-        # Translation
-        self.BorrowButtonText = {'English': 'Borrow', 'Chinese': '借用'}
-        self.ReturnButtonText = {'English': 'Return', 'Chinese': '歸還'}
-        self.InquireButtonText = {'English': 'Inquire', 'Chinese': '查詢'}
-        self.HelpButtonText = {'English': 'Help', 'Chinese': '幫助'}
-        self.SystemGreeting = {'English': self.SystemConfiguration['system_greeting_en'], 'Chinese': self.SystemConfiguration['system_greeting_tc']}
-
-    def __interface__(self):
-        '''Return a list which contain all interface'''
-        return [self.UserInterface, self.AdminInterface]
 
     def UserInterfaceSetup(self):
         # Interface setting
@@ -382,7 +595,7 @@ class SystemView(QtWidgets.QWidget):
         for row in range(self.SystemConfiguration['locker_row']):
             for column in range(self.SystemConfiguration['locker_column']):
                 index = row * self.SystemConfiguration['locker_column'] + column
-                exec(f'self.LockerButton{index} = QtWidgets.QPushButton(\'{index}\')')
+                exec(f'self.LockerButton{index} = QtWidgets.QPushButton("{index}")')
                 exec(f'self.LockerButton{index}.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)')
                 exec(f'self.LockerButtonLayout.addWidget(self.LockerButton{index}, {row}, {column})')
         self.LockerButtonFrame.setLayout(self.LockerButtonLayout)
@@ -390,20 +603,20 @@ class SystemView(QtWidgets.QWidget):
         # Second part
         self.FunctionButtonFrame = QtWidgets.QFrame()
         self.FunctionButtonLayout = QtWidgets.QGridLayout()
-        self.BorrowButton = QtWidgets.QPushButton('Borrow')
+        self.BorrowButton = QtWidgets.QPushButton(Translation.Borrow[self.Language])
         self.BorrowButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         self.FunctionButtonLayout.addWidget(self.BorrowButton, 0, 0, 2, 2)
-        self.ReturnButton = QtWidgets.QPushButton('Return')
+        self.ReturnButton = QtWidgets.QPushButton(Translation.Return[self.Language])
         self.ReturnButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         self.FunctionButtonLayout.addWidget(self.ReturnButton, 0, 2, 2, 2)
-        self.InquireButton = QtWidgets.QPushButton('Inquire')
+        self.InquireButton = QtWidgets.QPushButton(Translation.Inquire[self.Language])
         self.InquireButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         self.FunctionButtonLayout.addWidget(self.InquireButton, 0, 4, 2, 2)
         self.TranslationBox = QtWidgets.QComboBox()
         self.TranslationBox.addItems(['English', '中文'])
         self.TranslationBox.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         self.FunctionButtonLayout.addWidget(self.TranslationBox, 0, 12, 2, 2)
-        self.HelpButton = QtWidgets.QPushButton('Help')
+        self.HelpButton = QtWidgets.QPushButton(Translation.Help[self.Language])
         self.HelpButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         self.FunctionButtonLayout.addWidget(self.HelpButton, 0, 14, 2, 2)
         for i in range(16):
@@ -465,11 +678,11 @@ class SystemView(QtWidgets.QWidget):
     
     def SetLanguage(self, language):
         self.Language = language
-        self.BorrowButton.setText(self.BorrowButtonText[self.Language])
-        self.ReturnButton.setText(self.ReturnButtonText[self.Language])
-        self.InquireButton.setText(self.InquireButtonText[self.Language])
-        self.HelpButton.setText(self.HelpButtonText[self.Language])
-        self.RollSystemGreeting.string_to_roll_string(self.SystemGreeting[self.Language])
+        self.BorrowButton.setText(Translation.Borrow[self.Language])
+        self.ReturnButton.setText(Translation.Return[self.Language])
+        self.InquireButton.setText(Translation.Inquire[self.Language])
+        self.HelpButton.setText(Translation.Help[self.Language])
+        self.RollSystemGreeting.Set(Translation.SystemGreeting[self.Language])
 
 
 class SystemController(SystemView):
@@ -485,10 +698,12 @@ class SystemController(SystemView):
     
     def UserFunctionConnection(self):
         self.BorrowButton.clicked.connect(lambda: locker_borrow.LockerSelection())
+        self.ReturnButton.clicked.connect(lambda: locker_return.SelectLocker())
         self.InquireButton.clicked.connect(lambda: inquire.Execute())
         self.TranslationBox.currentIndexChanged.connect(self.SetUILanguage)
         self.HelpButton.clicked.connect(lambda: help.Display())
-        self.RollSystemGreeting = RollSystemGreeting(self.SystemGreeting[self.Language])
+        self.RollSystemGreeting = RollSystemGreeting()
+        self.RollSystemGreeting.Set(Translation.SystemGreeting[self.Language])
         self.RollSystemGreeting.trigger.connect(self.SystemGreetingDisplay)
         self.RollSystemGreeting.start()
         self.CurrentTime = CurrentTime()
@@ -496,10 +711,10 @@ class SystemController(SystemView):
         self.CurrentTime.start()
     
     def SystemGreetingDisplay(self, system_greeting):
-        self.SystemGreetingLabel.setText(f'{system_greeting}')
+        self.SystemGreetingLabel.setText(system_greeting)
 
     def CurrentTimeDisplay(self, current_time):
-        self.TimeLabel.setText(f'{current_time}')
+        self.TimeLabel.setText(current_time)
 
     def AdminFunctionConnection(self):
         self.CardManagementButton.clicked.connect(lambda: card_management.show())
@@ -509,7 +724,7 @@ class SystemController(SystemView):
         self.UserGuiButton.clicked.connect(partial(self.ShowInterface, 0))
         
     def ShowInterface(self, interface_index):
-        for index, interface in enumerate(self.__interface__()):
+        for index, interface in enumerate([self.UserInterface, self.AdminInterface]):
             if index == interface_index:
                 interface.show()
             else:
@@ -542,14 +757,13 @@ class SystemController(SystemView):
     
     def LockerButtonConnection(self):
         for index in self.SystemStatus.keys():
-            exec(f'self.LockerButton{index}.clicked.connect(partial(self.LockerController, {index}))')
+            exec(f'self.LockerButton{index}.clicked.connect(partial(self.LockerController, "{index}"))')
     
     def LockerController(self, index):
-        index = str(index)
         if self.SystemStatus[index]['availability'] == 0 or self.SystemStatus[index]['availability'] == 3:
-            locker_return.GetLockerIndex(index)
+            locker_return.SelectLocker(index)
         elif self.SystemStatus[index]['availability'] == 1:
-            locker_borrow.GetLockerIndex(index)
+            locker_borrow.SelectLocker(index)
         elif self.SystemStatus[index]['availability'] == 2:
             locker_maintenance.show()
     
@@ -575,17 +789,11 @@ class SystemController(SystemView):
 class SystemModel(SystemController):
     def __init__(self):
         # Get the configuration from the configuration file
-        self.SystemConfiguration = self.__GetSystemConfiguration()
+        self.SystemConfiguration = system_configuration
         self.SystemStatus = self.__GetSystemStatus()
         self.__SetSystemLog()
         Database.Initialization()
         super().__init__()
-    
-    def __GetSystemConfiguration(self):
-        with open(SYSTEM_CONFIGURATION_FILE_PATH, 'r', encoding='utf-8') as system_configuration_file:
-            system_configuration_data = system_configuration_file.read()
-            system_configuration_data = loads(system_configuration_data)
-        return system_configuration_data
     
     def __GetSystemStatus(self):
         if exists(SYSTEM_STATUS_FILE_PATH):
@@ -612,26 +820,23 @@ class SystemModel(SystemController):
 class TapCardView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        set_widget_setting(self, 2, 'Calibri', 24, 'TapCard')
-        # Translation
-        self.TapCardPrompt = {'English': 'Please tap your card', 'Chinese': '請拍卡'}
-        self.CancelButtonText = {'English': 'Cancel', 'Chinese': '取消'}
+        set_widget_setting(self, 3, 'Calibri', 18, 'TapCard')
         # Interface setup
         self.MainLayout = QtWidgets.QGridLayout(self)
-        self.TapCardLabel = QtWidgets.QLabel(self.TapCardPrompt[self.Language])
+        self.TapCardLabel = QtWidgets.QLabel(Translation.TapCard[self.Language])
         self.TapCardLabel.setAlignment(QtCore.Qt.AlignCenter)
         self.MainLayout.addWidget(self.TapCardLabel, 0, 0, 1, 3)
         self.HintLabel = QtWidgets.QLabel('')
         self.HintLabel.setAlignment(QtCore.Qt.AlignCenter)
         self.MainLayout.addWidget(self.HintLabel, 1, 0, 1, 3)
-        self.CancelButton = QtWidgets.QPushButton(self.CancelButtonText[self.Language])
+        self.CancelButton = QtWidgets.QPushButton(Translation.Cancel[self.Language])
         self.MainLayout.addWidget(self.CancelButton, 2, 1, 1, 1)
         self.setLayout(self.MainLayout)
     
     def SetLanguage(self, language):
         self.Language = language
-        self.TapCardLabel.setText(self.TapCardPrompt[self.Language])
-        self.CancelButton.setText(self.CancelButtonText[self.Language])
+        self.TapCardLabel.setText(Translation.TapCard[self.Language])
+        self.CancelButton.setText(Translation.Cancel[self.Language])
 
 
 class TapCardController(TapCardView):
@@ -648,20 +853,18 @@ class DisplayView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         set_widget_setting(self, 1, 'Consolas', 24, 'Display')
-        # Translation
-        self.CancelButtonText = {'English': 'Cancel', 'Chinese': '取消'}
         # Interface setup
         self.MainLayout = QtWidgets.QGridLayout()
         self.TextEdit = QtWidgets.QTextEdit()
         self.TextEdit.setReadOnly(True)
         self.MainLayout.addWidget(self.TextEdit, 0, 0, 2, 3)
-        self.CancelButton = QtWidgets.QPushButton(self.CancelButtonText[self.Language])
+        self.CancelButton = QtWidgets.QPushButton(Translation.Cancel[self.Language])
         self.MainLayout.addWidget(self.CancelButton, 2, 1)
         self.setLayout(self.MainLayout)
     
     def SetLanguage(self, language):
         self.Language = language
-        self.CancelButton.setText(self.CancelButtonText[self.Language])
+        self.CancelButton.setText(Translation.Cancel[self.Language])
 
 
 class DisplayController(DisplayView):
@@ -689,7 +892,6 @@ class WarningMessageBox(QtWidgets.QMessageBox):
         # Set widget property
         self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
         # Set default language
-        self.Language = 'English'
         self.setIcon(self.Warning)
         self.setText(message)
         comfirm = self.addButton('Corfirm', self.AcceptRole)
@@ -709,22 +911,18 @@ class LockerBorrowView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         set_widget_setting(self, 2, 'Calibri', 24, 'LockerBorrow')
-        # Translation
-        self.BorrowMessageLabel_2Prompt = {'English': 'Please put all the things you want into locker \nand close the door properly \nbefore you click the confirm button.', 'Chinese': '請將您的東西全部放進儲物櫃，\n並正確關閉櫃門，\n然後再點擊確認按鈕。'}
-        self.CancelButtonText = {'English': 'Cancel', 'Chinese': '取消'}
-        self.ConfirmButtonText = {'English': 'Comfirm', 'Chinese': '確認'}
         # Interface layout setup
         self.MainLayout = QtWidgets.QGridLayout()
-        self.BorrowMessageLabel_1 = QtWidgets.QLabel()
-        self.BorrowMessageLabel_1.setAlignment(QtCore.Qt.AlignCenter)
-        self.MainLayout.addWidget(self.BorrowMessageLabel_1, 0, 0, 1, 3)
-        self.BorrowMessageLabel_2 = QtWidgets.QLabel(self.BorrowMessageLabel_2Prompt[self.Language])
-        self.BorrowMessageLabel_2.setAlignment(QtCore.Qt.AlignCenter)
-        self.MainLayout.addWidget(self.BorrowMessageLabel_2, 1, 0, 1, 3)
-        self.CancelButton = QtWidgets.QPushButton(self.CancelButtonText[self.Language])
+        self.SelectLabel = QtWidgets.QLabel()
+        self.SelectLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.MainLayout.addWidget(self.SelectLabel, 0, 0, 1, 3)
+        self.BorrowHintLabel = QtWidgets.QLabel(Translation.BorrowHint[self.Language])
+        self.BorrowHintLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.MainLayout.addWidget(self.BorrowHintLabel, 1, 0, 1, 3)
+        self.CancelButton = QtWidgets.QPushButton(Translation.Cancel[self.Language])
         self.CancelButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         self.MainLayout.addWidget(self.CancelButton, 2, 0)
-        self.ConfirmButton = QtWidgets.QPushButton(self.ConfirmButtonText[self.Language])
+        self.ConfirmButton = QtWidgets.QPushButton(Translation.Confirm[self.Language])
         self.ConfirmButton.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         self.MainLayout.addWidget(self.ConfirmButton, 2, 2)
         for i in range(3):
@@ -733,9 +931,9 @@ class LockerBorrowView(QtWidgets.QWidget):
     
     def SetLanguage(self, language):
         self.Language = language
-        self.BorrowMessageLabel_2.setText(self.BorrowMessageLabel_2Prompt[self.Language])
-        self.CancelButton.setText(self.CancelButtonText[self.Language])
-        self.ConfirmButton.setText(self.ConfirmButtonText[self.Language])
+        self.BorrowHintLabel.setText(Translation.BorrowHint[self.Language])
+        self.CancelButton.setText(Translation.Cancel[self.Language])
+        self.ConfirmButton.setText(Translation.Confirm[self.Language])
 
 
 class LockerBorrowController(LockerBorrowView):
@@ -744,12 +942,9 @@ class LockerBorrowController(LockerBorrowView):
         self.CancelButton.clicked.connect(self.close)
         self.ConfirmButton.clicked.connect(self.BorrowLockerPreparation)
     
-    def GetLockerIndex(self, index):
-        self.LockerIndex = index
-        if self.Language == 'English':
-            self.BorrowMessageLabel_1.setText(f'You have selected locker {self.LockerIndex}')
-        elif self.Language == 'Chinese':
-            self.BorrowMessageLabel_1.setText(f'您選擇了儲物櫃 {self.LockerIndex}')
+    def SelectLocker(self, index):
+        self.SelectedLockerIndex = index
+        self.SelectLabel.setText(f'{Translation.SelectMessage[self.Language]} {self.SelectedLockerIndex}')
         self.show()
 
 
@@ -760,11 +955,11 @@ class LockerBorrowModel(LockerBorrowController):
     def LockerSelection(self):
         locker_list = list(system.SystemStatus.items())
         locker_list.sort(key=lambda x:x[1]['usage_count'])
-        self.GetLockerIndex(locker_list[0][0])
+        self.SelectLocker(locker_list[0][0])
 
     def BorrowLockerPreparation(self):
         system_name_byte = Converter.SystemName(system.SystemConfiguration['system_name'])
-        locker_index_byte = Converter.LockerIndex(int(self.LockerIndex))
+        locker_index_byte = Converter.LockerIndex(int(self.SelectedLockerIndex))
         self.SystemData = system_name_byte + locker_index_byte
         self.StartTime = int(time())
         self.TimeData = Converter.Time(self.StartTime) + [0] * 8
@@ -806,44 +1001,40 @@ class LockerBorrowModel(LockerBorrowController):
             student_info_data = self.Thread.Result[0] + self.Thread.Result[1]
             student_id = Converter.StudentId(student_info_data[:6])
             student_name = Converter.StudentName(student_info_data[6:])
-            system.SystemStatus[self.LockerIndex]['availability'] = 0
-            system.SystemStatus[self.LockerIndex]['student_name'] = student_name
-            system.SystemStatus[self.LockerIndex]['student_id'] = student_id
-            system.SystemStatus[self.LockerIndex]['start_time'] = self.StartTime
-            system.SystemStatus[self.LockerIndex]['usage_count'] += 1
+            system.SystemStatus[self.SelectedLockerIndex]['availability'] = 0
+            system.SystemStatus[self.SelectedLockerIndex]['student_name'] = student_name
+            system.SystemStatus[self.SelectedLockerIndex]['student_id'] = student_id
+            system.SystemStatus[self.SelectedLockerIndex]['start_time'] = self.StartTime
+            system.SystemStatus[self.SelectedLockerIndex]['usage_count'] += 1
             time_string = Converter.TimeString(self.StartTime)
-            system.SystemLogWrite(f'{time_string} Borrow - Locker {self.LockerIndex} was borrowed by {student_id} {student_name}')
+            system.SystemLogWrite(f'{time_string} Borrow - Locker {self.SelectedLockerIndex} was borrowed by {student_id} {student_name}')
             system.LockerStatusRefresh()
-            Database.HistoryRecordUpdateBorrow(student_id, self.LockerIndex, time_string)
+            Database.HistoryRecordUpdateBorrow(student_id, self.SelectedLockerIndex, time_string)
 
 
 class LockerReturnView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         set_widget_setting(self, 2, 'Calibri', 24, 'LockerReturn')
-        # Translation
-        self.ReturnMessageLabel_2Prompt = {'English': 'Are you comfirm to return?', 'Chinese': '您確定要歸還嗎?'}
-        self.CancelButtonText = {'English': 'Cancel', 'Chinese': '取消'}
-        self.ConfirmButtonText = {'English': 'Comfirm', 'Chinese': '確認'}
         # Interface layout setup
         self.MainLayout = QtWidgets.QGridLayout()
-        self.ReturnMessageLabel_1 = QtWidgets.QLabel()
-        self.ReturnMessageLabel_1.setAlignment(QtCore.Qt.AlignCenter)
-        self.MainLayout.addWidget(self.ReturnMessageLabel_1, 0, 0, 1, 3)
-        self.ReturnMessageLabel_2 = QtWidgets.QLabel('Are you comfirm to return?')
-        self.ReturnMessageLabel_2.setAlignment(QtCore.Qt.AlignCenter)
-        self.MainLayout.addWidget(self.ReturnMessageLabel_2, 1, 0, 1, 3)
-        self.CancelButton = QtWidgets.QPushButton('Cancel')
+        self.SelectLabel = QtWidgets.QLabel()
+        self.SelectLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.MainLayout.addWidget(self.SelectLabel, 0, 0, 1, 3)
+        self.ReturnHintLabel = QtWidgets.QLabel(Translation.ReturnHint[self.Language])
+        self.ReturnHintLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.MainLayout.addWidget(self.ReturnHintLabel, 1, 0, 1, 3)
+        self.CancelButton = QtWidgets.QPushButton(Translation.Cancel[self.Language])
         self.MainLayout.addWidget(self.CancelButton, 2, 0)
-        self.ConfirmButton = QtWidgets.QPushButton('Comfirm')
+        self.ConfirmButton = QtWidgets.QPushButton(Translation.Confirm[self.Language])
         self.MainLayout.addWidget(self.ConfirmButton, 2, 2)
         self.setLayout(self.MainLayout)
 
     def SetLanguage(self, language):
         self.Language = language
-        self.ReturnMessageLabel_2.setText(self.ReturnMessageLabel_2Prompt[self.Language])
-        self.CancelButton.setText(self.CancelButtonText[self.Language])
-        self.ConfirmButton.setText(self.ConfirmButtonText[self.Language])
+        self.ReturnHintLabel.setText(Translation.ReturnHint[self.Language])
+        self.CancelButton.setText(Translation.Cancel[self.Language])
+        self.ConfirmButton.setText(Translation.Confirm[self.Language])
 
 
 class LockerReturnController(LockerReturnView):
@@ -852,13 +1043,13 @@ class LockerReturnController(LockerReturnView):
         self.CancelButton.clicked.connect(self.close)
         self.ConfirmButton.clicked.connect(self.ReturnLockerPreparation)
     
-    def GetLockerIndex(self, index):
-        self.LockerIndex = index
-        if self.Language == 'English':
-            self.ReturnMessageLabel_1.setText(f'You have selected locker {self.LockerIndex}')
-        elif self.Language == 'Chinese':
-            self.ReturnMessageLabel_1.setText(f'您選擇了儲物櫃 {self.LockerIndex}')
-        self.show()
+    def SelectLocker(self, index=None):
+        self.SelectedLockerIndex = index
+        if self.SelectedLockerIndex == None:
+            self.ReturnLockerPreparation()
+        else:
+            self.SelectLabel.setText(f'{Translation.SelectMessage[self.Language]} {self.SelectedLockerIndex}')
+            self.show()
 
 
 class LockerReturnModel(LockerReturnController):
@@ -866,8 +1057,17 @@ class LockerReturnModel(LockerReturnController):
         super().__init__()
 
     def ReturnLockerPreparation(self):
-        self.StudentIdForSelectedLocker = system.SystemStatus[self.LockerIndex]['student_id']
-        self.StartTimeData = Converter.Time(system.SystemStatus[self.LockerIndex]['start_time'])
+        if self.SelectedLockerIndex == None:
+            self.SystemDict = {}
+            student_id_set = {system.SystemStatus[i]['student_id'] for i in system.SystemStatus.keys() if system.SystemStatus[i]['student_id']}
+            for student_id in student_id_set:
+                temp = [index for index in list(system.SystemStatus.keys()) if system.SystemStatus[index]['student_id'] == student_id]
+                temp.sort(key=lambda x: system.SystemStatus[x]['start_time'])
+                self.SystemDict[student_id] = temp
+        else:
+            self.StudentIdForSelectedLocker = system.SystemStatus[self.SelectedLockerIndex]['student_id']
+            self.StartTimeData = Converter.Time(system.SystemStatus[self.SelectedLockerIndex]['start_time'])
+            self.LockerIndexData = Converter.LockerIndex(int(self.SelectedLockerIndex))
         self.EndTime = int(time())
         self.EndTimeData = Converter.Time(self.EndTime)
         self.Execute()
@@ -880,8 +1080,16 @@ class LockerReturnModel(LockerReturnController):
         self.Thread.start()
 
     def MainProgram(self, uid, access_key):
-        if Converter.StudentId(access_key) != self.StudentIdForSelectedLocker:
+        student_id = Converter.StudentId(access_key)
+        if self.SelectedLockerIndex != None and student_id != self.StudentIdForSelectedLocker:
             raise mifare_reader.UnmatchError
+        elif self.SelectedLockerIndex == None:
+            if student_id in self.SystemDict:
+                self.SelectedLockerIndex = self.SystemDict[student_id][0]
+                self.LockerIndexData = Converter.LockerIndex(int(self.SelectedLockerIndex))
+                self.StartTimeData = Converter.Time(system.SystemStatus[self.SelectedLockerIndex]['start_time'])
+            else:
+                raise mifare_reader.NotFindError
         mifare_reader.MFRC522_Auth(uid, 9, access_key)
         block9_data = mifare_reader.MFRC522_Read(9)
         for x in range(11):
@@ -889,7 +1097,7 @@ class LockerReturnModel(LockerReturnController):
                 raise mifare_reader.UnmatchError
             if block9_data[x] == 1:
                 mifare_reader.MFRC522_Auth(uid, 4 * x + 14, access_key)
-                if mifare_reader.MFRC522_Read(4 * x + 14)[:8] == self.StartTimeData:
+                if mifare_reader.MFRC522_Read(4 * x + 14)[:8] == self.StartTimeData and mifare_reader.MFRC522_Read(4 * x + 13)[-2:] == self.LockerIndexData:
                     break
         mifare_reader.MFRC522_Write(4 * x + 14, self.StartTimeData + self.EndTimeData)
         block9_data[x] = 0
@@ -899,41 +1107,38 @@ class LockerReturnModel(LockerReturnController):
     def StatusUpate(self):
         tap_card.close()
         if mifare_reader.InterruptSignal == False:
-            availability = system.SystemStatus[self.LockerIndex]['availability']
-            student_name = system.SystemStatus[self.LockerIndex]['student_name']
-            student_id = system.SystemStatus[self.LockerIndex]['student_id']
-            borrow_time = system.SystemStatus[self.LockerIndex]['start_time']
-            system.SystemStatus[self.LockerIndex]['availability'] = 1 if availability != 3 else 2
-            system.SystemStatus[self.LockerIndex]['student_name'] = None
-            system.SystemStatus[self.LockerIndex]['student_id'] = None
-            system.SystemStatus[self.LockerIndex]['start_time'] = None
+            availability = system.SystemStatus[self.SelectedLockerIndex]['availability']
+            student_name = system.SystemStatus[self.SelectedLockerIndex]['student_name']
+            student_id = system.SystemStatus[self.SelectedLockerIndex]['student_id']
+            borrow_time = system.SystemStatus[self.SelectedLockerIndex]['start_time']
+            system.SystemStatus[self.SelectedLockerIndex]['availability'] = 1 if availability != 3 else 2
+            system.SystemStatus[self.SelectedLockerIndex]['student_name'] = None
+            system.SystemStatus[self.SelectedLockerIndex]['student_id'] = None
+            system.SystemStatus[self.SelectedLockerIndex]['start_time'] = None
             borrow_time_string = Converter.TimeString(borrow_time)
             return_time_string = Converter.TimeString(self.EndTime)
-            system.SystemLogWrite(f'{return_time_string} Return - Locker {self.LockerIndex} was return by {student_id} {student_name}\n')
+            system.SystemLogWrite(f'{return_time_string} Return - Locker {self.SelectedLockerIndex} was return by {student_id} {student_name}\n')
             system.LockerStatusRefresh()
-            Database.HistoryRecordUpdateReturn(student_id, self.LockerIndex, borrow_time_string, return_time_string)
+            Database.HistoryRecordUpdateReturn(student_id, self.SelectedLockerIndex, borrow_time_string, return_time_string)
 
 
 class LockerMaintenanceView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         set_widget_setting(self, 2, 'Calibri', 24, 'LockerMaintenance')
-        # Translation
-        self.LockerMaintenancePrompt = {'English': 'This locker is in maintenance.\nPlease choose another locker.', 'Chinese': '此儲物櫃正在維護中\n請選擇另一個儲物櫃'}
-        self.CancelButtonText = {'English': 'Cancel', 'Chinese': '取消'}
         # Interface setup
         self.MainLayout = QtWidgets.QGridLayout(self)
-        self.Label = QtWidgets.QLabel(self.LockerMaintenancePrompt[self.Language])
-        self.Label.setAlignment(QtCore.Qt.AlignCenter)
-        self.MainLayout.addWidget(self.Label, 0, 0, 1, 3)
-        self.CancelButton = QtWidgets.QPushButton(self.CancelButtonText[self.Language])
+        self.MaintenanceHintLabel = QtWidgets.QLabel(Translation.MaintenanceHint[self.Language])
+        self.MaintenanceHintLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.MainLayout.addWidget(self.MaintenanceHintLabel, 0, 0, 1, 3)
+        self.CancelButton = QtWidgets.QPushButton(Translation.Cancel[self.Language])
         self.MainLayout.addWidget(self.CancelButton, 2, 1)
         self.setLayout(self.MainLayout)
     
     def SetLanguage(self, language):
         self.Language = language
-        self.Label.setText(self.LockerMaintenancePrompt[self.Language])
-        self.CancelButton.setText(self.CancelButtonText[self.Language])
+        self.MaintenanceHintLabel.setText(Translation.MaintenanceHint[self.Language])
+        self.CancelButton.setText(Translation.Cancel[self.Language])
 
 
 class LockerMaintenanceController(LockerMaintenanceView):
@@ -946,7 +1151,6 @@ class Inquire(QtCore.QObject):
     def __init__(self):
         super().__init__()
         self.Language = 'English'
-        # Translation
     
     def Execute(self):
         self.Thread = Threading(mifare_reader.StandardFrame(self.MainProgram))
@@ -983,35 +1187,10 @@ class Inquire(QtCore.QObject):
                 history_data_list.sort(key=lambda x: x[2])
             else:
                 history_data_list = []
-            formatted_string = self.FormatInquireResult(student_id, student_name, balance, history_data_list)
+            student_info = '\n'.join([f'Student Name: {student_name}', f'Student ID: {student_id}', f'Balance: {balance}', 'History Record:'])
+            table_string = Converter.TableView(['Locker Location', 'Index', 'Borrow Time', 'Return Time'], history_data_list)
+            formatted_string = '\n'.join([student_info, table_string])
             display.Display(formatted_string)
-    
-    def FormatInquireResult(self, student_id, student_name, balance, history_data_list):
-        student_info = '\n'.join([f'Student Name: {student_name}', f'Student ID: {student_id}', f'Balance: {balance}'])
-        if history_data_list == []:
-            formatted_string = '\n'.join([student_info, 'No history data found'])
-        else:
-            first_column_data = [data[0] for data in history_data_list]
-            first_column_width = max([len(data) for data in first_column_data] + [len('Locker Location')]) + 2
-            second_column_data = [str(data[1]) for data in history_data_list]
-            second_column_width = max([len(data) for data in second_column_data] + [len('Index')]) + 2
-            third_column_data = [strftime('%Y-%m-%d %H:%M:%S', localtime(data[2])) for data in history_data_list]
-            third_column_width = max([len(data) for data in third_column_data] + [len('Borrow Time')]) + 2
-            fourth_column_data = [data[3] for data in history_data_list]
-            for i in range(len(fourth_column_data)):
-                if fourth_column_data[i] == 0:
-                    fourth_column_data[i] = 'Not return yet'
-                else:
-                    fourth_column_data[i] = strftime('%Y-%m-%d %H:%M:%S', localtime(fourth_column_data[i]))
-            fourth_column_width = max([len(data) for data in fourth_column_data]+ [len('Return Time')]) + 2
-            first_row = 'History Record:'
-            second_row = f'+{"-" * first_column_width}+{"-" * second_column_width}+{"-" * third_column_width}+{"-" * fourth_column_width}+'
-            third_row = f'| Locker Location{" " * (first_column_width - len(" Locker Location"))}| Index{" " * (second_column_width - len(" Index"))}| Borrow Time{" " * (third_column_width - len(" Borrow Time"))}| Return Time{" " * (fourth_column_width - len(" Return Time"))}|'
-            fourth_row = last_row = str(second_row)
-            history_data_row_list = [f'| {first_column_data[i]}{" " * (first_column_width - len(f" {first_column_data[i]}"))}| {second_column_data[i]}{" " * (second_column_width - len(f" {second_column_data[i]}"))}| {third_column_data[i]}{" " * (third_column_width - len(f" {third_column_data[i]}"))}| {fourth_column_data[i]}{" " * (fourth_column_width - len(f" {fourth_column_data[i]}"))}|' for i, _ in enumerate(history_data_list)]
-            history_data_string = '\n'.join(history_data_row_list)
-            formatted_string = '\n'.join([student_info, first_row, second_row, third_row, fourth_row, history_data_string, last_row])
-        return formatted_string
 
     def SetLanguage(self, language):
         self.Language = language
@@ -1021,11 +1200,9 @@ class Help(QtCore.QObject):
     def __init__(self):
         super().__init__()
         self.Language = 'English'
-        # Translation
-        self.HelpText = {'English': HELP_TEXT_EN, 'Chinese': HELP_TEXT_TC}
 
     def Display(self):
-        display.Display(self.HelpText[self.Language])
+        display.Display(Translation.UserHelp[self.Language])
 
     def SetLanguage(self, language):
         self.Language = language
@@ -1036,7 +1213,7 @@ class Help(QtCore.QObject):
 class CardManagementView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        set_widget_setting(self, 4, 'Calibri', 12, 'CardManagaement')
+        set_widget_setting(self, 3, 'Calibri', 18, 'CardManagaement')
         # Interface layout setup
         self.MainLayout = QtWidgets.QGridLayout()
         self.CardInitializationButton = QtWidgets.QPushButton('CardInitialization')
@@ -1086,30 +1263,34 @@ class CardManagementController(CardManagementView):
 class CardInitializationView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        set_widget_setting(self, 4, 'Calibri', 12, 'CardInitialization')
+        set_widget_setting(self, 3, 'Calibri', 18, 'CardInitialization')
         # Interface layout setup
         self.MainLayout = QtWidgets.QGridLayout()
-        self.HintLabel = QtWidgets.QLabel('Please input:')
-        self.HintLabel.setAlignment(QtCore.Qt.AlignCenter)
-        self.MainLayout.addWidget(self.HintLabel, 0, 0, 1, 3)
+        self.InputHintLabel = QtWidgets.QLabel('Please input:')
+        self.InputHintLabel.setAlignment(QtCore.Qt.AlignCenter)
+        self.MainLayout.addWidget(self.InputHintLabel, 0, 2, 1, 2)
         self.StudentIdLabel = QtWidgets.QLabel('Student ID:')
         self.StudentIdLabel.setAlignment(QtCore.Qt.AlignCenter)
-        self.MainLayout.addWidget(self.StudentIdLabel, 1, 0)
+        self.MainLayout.addWidget(self.StudentIdLabel, 1, 0, 1, 2)
         self.StudentIdLineEdit = QtWidgets.QLineEdit()
-        self.MainLayout.addWidget(self.StudentIdLineEdit, 1, 1, 1, 2)
+        self.MainLayout.addWidget(self.StudentIdLineEdit, 1, 2, 1, 3)
+        self.VirtualNumPadButton = QtWidgets.QPushButton('⌨')
+        self.MainLayout.addWidget(self.VirtualNumPadButton, 1, 5)
         self.StudentNameLabel = QtWidgets.QLabel('Student Name:')
         self.StudentNameLabel.setAlignment(QtCore.Qt.AlignCenter)
-        self.MainLayout.addWidget(self.StudentNameLabel, 2, 0)
+        self.MainLayout.addWidget(self.StudentNameLabel, 2, 0, 1, 2)
         self.StudentNameLineEdit = QtWidgets.QLineEdit()
-        self.MainLayout.addWidget(self.StudentNameLineEdit, 2, 1, 1, 2)
+        self.MainLayout.addWidget(self.StudentNameLineEdit, 2, 2, 1, 3)
+        self.VirtualKeyboardButton = QtWidgets.QPushButton('⌨')
+        self.MainLayout.addWidget(self.VirtualKeyboardButton, 2, 5)
         self.HintLabel = QtWidgets.QLabel()
         self.HintLabel.setAlignment(QtCore.Qt.AlignCenter)
-        self.MainLayout.addWidget(self.HintLabel, 3, 0, 1, 3)
+        self.MainLayout.addWidget(self.HintLabel, 3, 0, 1, 6)
         self.CancelButton = QtWidgets.QPushButton('Cancel')
-        self.MainLayout.addWidget(self.CancelButton, 4, 0)
-        self.MainLayout.addWidget(QtWidgets.QLabel(), 4, 1)
+        self.MainLayout.addWidget(self.CancelButton, 4, 0, 1, 2)
+        self.MainLayout.addWidget(QtWidgets.QLabel(), 4, 2, 1, 2)
         self.ComfirmButton = QtWidgets.QPushButton('Comfirm')
-        self.MainLayout.addWidget(self.ComfirmButton, 4, 2)
+        self.MainLayout.addWidget(self.ComfirmButton, 4, 4, 1, 2)
         self.setLayout(self.MainLayout)
 
 
@@ -1123,6 +1304,8 @@ class CardInitializationController(CardInitializationView):
         self.CancelButton.clicked.connect(self.close)
         self.StudentIdLineEdit.setMaxLength(8)
         self.StudentIdLineEdit.textChanged.connect(self.StudentIdValidate)
+        self.VirtualNumPadButton.clicked.connect(lambda: virtual_number_pad.Connect(self.StudentIdLineEdit, ',', '-'))
+        self.VirtualKeyboardButton.clicked.connect(lambda: virtual_keyboard.Connect(self.StudentNameLineEdit))
         self.StudentNameLineEdit.setMaxLength(26)
         self.StudentNameLineEdit.textChanged.connect(self.StudentNameValidate)
         self.StudentIdOkSignal.connect(self.StudentIdOk)
@@ -1164,7 +1347,7 @@ class CardInitializationController(CardInitializationView):
             self.ComfirmButton.setEnabled(True)
         else:
             self.ComfirmButton.setEnabled(False)
-    
+
     def closeEvent(self, event):
         self.StudentIdLineEdit.clear()
         self.StudentNameLineEdit.clear()
@@ -1284,7 +1467,7 @@ class CardDump(QtCore.QObject):
 class BalanceView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        set_widget_setting(self, 4, 'Calibri', 12, 'Balance')
+        set_widget_setting(self, 3, 'Calibri', 18, 'Balance')
         # Interface setup
         self.MainLayout = QtWidgets.QGridLayout(self)
         self.TopupLabel = QtWidgets.QLabel('Please input the top-up value')
@@ -1315,7 +1498,7 @@ class BalanceModel(BalanceController):
         super().__init__()
     
     def Execute(self):
-        keypad.Connect(self.BalanceLineEdit)
+        keypad.Connect(self.BalanceLineEdit, ',', '-')
         self.Thread = Threading(keypad.KeyPadScan)
         self.Thread.started.connect(self.show)
         self.Thread.start()
@@ -1325,7 +1508,7 @@ class BalanceModel(BalanceController):
 class DatabaseManagementView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        set_widget_setting(self, 4, 'Calibri', 12, 'DatabaseManagaement')
+        set_widget_setting(self, 3, 'Calibri', 18, 'DatabaseManagaement')
         # Interface layout setup
         self.MainLayout = QtWidgets.QGridLayout()
         self.PrintDatabaseButton = QtWidgets.QPushButton('PrintDatabase')
@@ -1358,7 +1541,7 @@ class DatabaseManagementController(DatabaseManagementView):
 class PrintDatabaseView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        set_widget_setting(self, 4, 'Calibri', 12, 'PrintDatabase')
+        set_widget_setting(self, 3, 'Calibri', 18, 'PrintDatabase')
         # Interface layout setup
         self.MainLayout = QtWidgets.QGridLayout()
         self.PrintUserRegistrationButton = QtWidgets.QPushButton('PrintUserRegistration')
@@ -1385,9 +1568,12 @@ class PrintDatabaseModel(PrintDatabaseController):
         super().__init__()
 
     def PrintAllRecord(self, table):
-        result = Database.PrintAllRecord(table)
+        column_name = Database.PrintColumnName(table)
+        column_name = [data[0] for data in column_name]
+        search_result = Database.PrintAllRecord(table)
+        formatted_string = Converter.TableView(column_name, search_result)
         self.close()
-        display.Display(f'{pformat(result)}')
+        display.Display(formatted_string)
     
     def CloseWindow(self):
         self.close()
@@ -1397,7 +1583,7 @@ class PrintDatabaseModel(PrintDatabaseController):
 class ResetDatabaseView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        set_widget_setting(self, 4, 'Calibri', 12, 'PrintDatabase')
+        set_widget_setting(self, 3, 'Calibri', 18, 'PrintDatabase')
         # Interface layout setup
         self.MainLayout = QtWidgets.QGridLayout()
         self.ResetUserRegistrationButton = QtWidgets.QPushButton('ResetUserRegistration')
@@ -1439,7 +1625,7 @@ class ResetDatabaseModel(ResetDatabaseController):
 class SystemManagementView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        set_widget_setting(self, 4, 'Calibri', 12, 'DatabaseManagaement')
+        set_widget_setting(self, 3, 'Calibri', 18, 'DatabaseManagaement')
         # Interface layout setup
         self.MainLayout = QtWidgets.QGridLayout()
         self.SetMaintenanceButton = QtWidgets.QPushButton('SetMaintenance')
@@ -1470,29 +1656,33 @@ class SystemManagementController(SystemManagementView):
 class MaintenceView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        set_widget_setting(self, 2, 'Calibri', 12, 'Maintenance')
+        set_widget_setting(self, 3, 'Calibri', 18, 'Maintenance')
         # Interface layout setup
         self.MainLayout = QtWidgets.QGridLayout()
         self.PromptLabel = QtWidgets.QLabel()
         self.PromptLabel.setAlignment(QtCore.Qt.AlignCenter)
-        self.MainLayout.addWidget(self.PromptLabel, 0, 0, 1, 3)
+        self.MainLayout.addWidget(self.PromptLabel, 0, 0, 1, 6)
         self.InputLineEdit = QtWidgets.QLineEdit()
         self.InputLineEdit.setReadOnly(True)
-        self.MainLayout.addWidget(self.InputLineEdit, 1, 0, 1, 3)
+        self.MainLayout.addWidget(self.InputLineEdit, 1, 0, 1, 5)
+        self.VirtualNumPadButton = QtWidgets.QPushButton('⌨')
+        self.MainLayout.addWidget(self.VirtualNumPadButton, 1, 5)
         self.CancelButton = QtWidgets.QPushButton('Cancel')
-        self.MainLayout.addWidget(self.CancelButton, 4, 0)
-        self.MainLayout.addWidget(QtWidgets.QLabel(), 4, 1)
+        self.MainLayout.addWidget(self.CancelButton, 4, 0, 1, 2)
+        self.MainLayout.addWidget(QtWidgets.QLabel(), 4, 2, 1, 2)
         self.ComfirmButton = QtWidgets.QPushButton('Comfirm')
         self.ComfirmButton.setEnabled(False)
-        self.MainLayout.addWidget(self.ComfirmButton, 4, 2)
+        self.MainLayout.addWidget(self.ComfirmButton, 4, 4, 1, 2)
         self.setLayout(self.MainLayout)
-        self.Prompt = {0: 'Please input the locker index that you want to reserve to do maintenance', 1: 'Please input the locker index that you want to be available'}
+        # 0 = Set, 1 = Reset
+        self.Prompt = {0: 'Please input the locker index for maintenance', 1: 'Please input the locker index that finish maintenance'}
 
 
 class MaintenanceController(MaintenceView):
     OkSignal = QtCore.pyqtSignal(bool)
     def __init__(self):
         super().__init__()
+        self.VirtualNumPadButton.clicked.connect(lambda: virtual_number_pad.Connect(self.InputLineEdit))
         self.CancelButton.clicked.connect(self.close)
         self.ComfirmButton.clicked.connect(self.MaintenancePreparation)
         self.InputLineEdit.textChanged.connect(self.MaintenanceValidate)
@@ -1537,7 +1727,8 @@ class MaintenanceModel(MaintenanceController):
         input_string_list = input_string.split(',')
         for string in input_string_list:
             if '-' in string:
-                end, start= string.split('-')
+                temp_string = string.split('-')
+                start, end = min(temp_string), max(temp_string)
                 temp = [str(i) for i in range(int(start), int(end) + 1)]
                 result += temp
             else:
@@ -1563,8 +1754,10 @@ class MaintenanceModel(MaintenanceController):
                 system.SystemLogWrite(f'{time_string} Start Maintenance - Locker {index}')
         elif self.Mode == 1:
             for index in result:
-                system.SystemStatus[index]['availability'] = 1
-                system.SystemLogWrite(f'{time_string} Finitsh Maintenance - Locker {index}')
+                locker_current_availability = system.SystemStatus[index]['availability']
+                if locker_current_availability == 2:
+                    system.SystemStatus[index]['availability'] = 1
+                    system.SystemLogWrite(f'{time_string} Finitsh Maintenance - Locker {index}')
         system.LockerStatusRefresh()
         self.close()
 
@@ -1572,7 +1765,7 @@ class MaintenanceModel(MaintenanceController):
 class ExitSystemView(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        set_widget_setting(self, 4, 'Calibri', 12, 'Exit')
+        set_widget_setting(self, 3, 'Calibri', 18, 'Exit')
         # Interface layout setup
         self.MainLayout = QtWidgets.QGridLayout()
         self.ExitSystemButton = QtWidgets.QPushButton('ExitSystem')
@@ -1672,6 +1865,8 @@ if __name__ == '__main__':
         screen_width, screen_height, center_point = get_screen_infomation()
         mifare_reader = MFRC522libExtension()
         keypad = KeyPadDriver()
+        virtual_number_pad = VirtualNumberPadController()
+        virtual_keyboard = VirtualKeyBoardController()
         system = SystemModel()
         tap_card = TapCardController()
         display = DisplayController()
