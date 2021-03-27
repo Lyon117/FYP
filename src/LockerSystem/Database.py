@@ -82,6 +82,13 @@ def HistoryRecordUpdateReturn(cursor, database, student_id, locker_id, borrow_ti
 
 
 @__AdminLogin('LOCKER_SYSTEM')
+def PrintColumnName(cursor, database, table):
+    cursor.execute(f"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = N'{table}'")
+    result = cursor.fetchall()
+    return result
+
+
+@__AdminLogin('LOCKER_SYSTEM')
 def PrintAllRecord(cursor, database, table):
     cursor.execute(f'SELECT * FROM {table}')
     result = cursor.fetchall()
