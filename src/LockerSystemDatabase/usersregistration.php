@@ -12,6 +12,7 @@ if(isset($_SESSION["loggedin"]) != true) {
     $sql = "SELECT * FROM USER_REGISTRATION";
     $result = mysqli_query($conn, $sql);
 }
+  
 ?>
 <html>
 <header>
@@ -21,6 +22,8 @@ if(isset($_SESSION["loggedin"]) != true) {
     <script src="bootstrap.min.js"></script>
 </header>
 <body>
+  
+
     <nav class="navbar navbar-default">
         <div class="container-fluid">
             <div class="navbar-header">
@@ -36,32 +39,37 @@ if(isset($_SESSION["loggedin"]) != true) {
             </ul>
         </div>
     </nav>
-    <head>
-        <form method="post" action="usersregistration.php">
-            <input type="text" name="search_data" placeholder="Search for ......">
-            <select name="search_field">
-                <option value="">Select Filter</option>
-                <option value="STUDENT_ID">Student ID</option>
-                <option value="STUDENT_NAME">Student Name</option>
-                <option value="UID">UID</option>
-                <option value="REGISTRATION_TIME">Registeration Time</option>
-            </select>
-            <input type="submit" name="submit" value="Find">
-        </form>
-    </head>
-    <?php
-    if (isset($_POST['submit'])) {
-        $search_data = $conn -> real_escape_string ($_POST['search_data']);
-        $search_field = $conn -> real_escape_string ($_POST['search_field']);
-        if ($search_field == "") {
-            $search_field = "STUDENT_NAME";
-        }
-        $search_sql = "SELECT * FROM USER_REGISTRATION WHERE " . $search_field . " LIKE '%" . $search_data . "%'";
-        $result = mysqli_query($conn, $search_sql);
-    }
-    ?>
     <div class="container">
         <h2>Users Registration</h2>
+<?php
+      if (isset($_POST['submit']))   {
+        $q = $conn-> real_escape_string ($_POST['q']);
+        $column = $conn-> real_escape_string ($_POST['column']);
+        
+        if ($column == "" || ($column != "ID" &&  $column != "STUDENT_NAME" && $column != "STUDENT_ID" && $column != "UID" && $column != "REGISTRATION_TIME"))
+            $column = "STUDENT_NAME";
+            
+        $search_sql = "SELECT * FROM USER_REGISTRATION WHERE " . $column . " LIKE '%" . $q . "%'";
+        $result = mysqli_query($conn, $search_sql);
+
+ 
+        }
+?>
+        <head>
+            <form method="post" action="usersregistration.php">
+                <input type="text" name="q" placeholder="Search for ......">
+                <select name="column">
+                    <option value="">Select Filter</option>
+                    <option value="ID">User No.</option>
+                    <option value="STUDENT_ID">Student ID</option>
+                    <option value="STUDENT_NAME">Student Name</option>
+                    <option value="UID">UID</option>
+                    <option value="REGISTRATION_TIME">Registered Time</option>
+                </select>
+                <input type="submit" name="submit" value="Find">
+            </form>
+        </head>
+        
         <table>
             <thead>
                 <tr>
