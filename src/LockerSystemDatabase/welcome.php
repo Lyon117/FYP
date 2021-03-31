@@ -28,8 +28,10 @@ if(isset($_SESSION["loggedin"]) != true) {
             </ul>
         </div>
     </nav>
+
     <div class="container">
         <h2>Welcome to Gp3_8 Locker System Database</h2>
+        
         <a href="logout.php">Logout</a>
     </div>
 </body>

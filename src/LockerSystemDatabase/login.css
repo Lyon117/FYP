@@ -1,0 +1,92 @@
+body{
+  background: url(login_bg2.png);
+  margin: 0;
+  padding: 0;
+  font-family: "",sans-serif;
+}
+.container{
+  width: 850px;
+  height: 450px;
+  background: #333;
+  border-radius: 40px;
+  opacity: 0.9;
+  position: absolute;
+  top:  50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  color:  white;
+  text-align: center;
+}
+.container h1{
+  font-size: 40px;
+  margin-top: 30px;
+  margin-bottom:  60px;
+}
+.tbox{
+  width:  260px;
+  height: 40px;
+  background: #f1f1f1b3;
+  border-radius: 10px;
+  margin: 10px auto;
+}
+.tbox input{
+  background: none;
+  border: none;
+  outline: none;
+  text-align: center;
+  width: 90%;
+  line-height:  37px;
+  font-family: "",sans-serif;
+  font-size: 20px;
+  color: #333;
+}
+.btn{
+  width:  260px;
+  height: 40px;
+  background: #636e72;
+  border-radius: 10px;
+  margin: 10px auto;
+  display: block;
+  font-family: "",sans-serif;
+  font-size: 20px;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+.b1{
+  display: block;
+  width: 200;
+  padding: 10px 0;
+  text-decoration: none;
+  color: white;
+  text-align: center;
+  margin: auto;
+}
+.b2{
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 260px;
+  padding: 10px 0;
+  text-decoration: none;
+  text-align: center;
+  transition: 0.4s all;
+  color: #3498db;
+}
+
+a:hover{
+  background: #00000040;
+  
+}
+
+
+
+
+
+
+
+
+
+
+
